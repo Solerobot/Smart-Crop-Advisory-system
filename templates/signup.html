@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up | Smart Crop Advisory</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Loading spinner */
+    .spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #16a34a;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Input validation styles */
+    .input-valid {
+      border-color: #16a34a !important;
+      box-shadow: 0 0 0 1px #16a34a !important;
+    }
+    
+    .input-invalid {
+      border-color: #ef4444 !important;
+      box-shadow: 0 0 0 1px #ef4444 !important;
+    }
+    
+    /* Password strength meter */
+    .password-strength-meter {
+      height: 4px;
+      width: 0%;
+      transition: width 0.3s, background-color 0.3s;
+      border-radius: 2px;
+      margin-top: 4px;
+    }
+    
+    .strength-weak { width: 33%; background-color: #ef4444; }
+    .strength-fair { width: 66%; background-color: #f59e0b; }
+    .strength-good { width: 100%; background-color: #16a34a; }
+    
+    /* Custom scrollbar for selects */
+    select::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    select::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    select::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+    
+    select::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+    
+    /* Transition effects */
+    .transition-all {
+      transition: all 0.2s ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
+  <!-- Language Switcher (Top Right) -->
+  <div class="absolute top-4 right-4">
+    <div class="flex items-center space-x-2">
+      <select id="language-select" class="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-green-400 text-sm">
+        <option value="en">🇺🇸 English</option>
+        <option value="hi">🇮🇳 हिन्दी</option>
+        <option value="te">🇮🇳 తెలుగు</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+    <!-- Logo and Title -->
+    <div class="text-center mb-6">
+      <div class="inline-flex items-center justify-center w-12 h-12 bg-green-600 rounded-lg mb-3">
+        <i class="fas fa-leaf text-white text-xl"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-gray-800">Create Account</h2>
+      <p class="text-gray-600 text-sm mt-1">Join Smart Crop Advisory System</p>
+    </div>
+
+    <!-- Status Message Area -->
+    <div id="auth-message" class="mb-4 hidden"></div>
+
+    <form id="signup-form" novalidate>
+      <!-- Username -->
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-medium mb-1">
+          <i class="fas fa-user text-green-600 mr-1"></i>
+          Username
+        </label>
+        <input type="text" id="signup-username" name="username" placeholder="Enter 3-20 characters"
+               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:outline-none transition-all"
+               required>
+        <div class="text-xs text-gray-500 mt-1 hidden" id="username-hint">Username must be 3-20 characters (letters, numbers, underscores)</div>
+      </div>
+
+      <!-- Email -->
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-medium mb-1">
+          <i class="fas fa-envelope text-green-600 mr-1"></i>
+          Email
+        </label>
+        <input type="email" id="signup-email" name="email" placeholder="your.email@example.com"
+               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:outline-none transition-all"
+               required>
+        <div class="text-xs text-gray-500 mt-1 hidden" id="email-hint">We'll never share your email</div>
+      </div>
+
+      <!-- Password -->
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-medium mb-1">
+          <i class="fas fa-lock text-green-600 mr-1"></i>
+          Password
+        </label>
+        <div class="relative">
+          <input type="password" id="signup-password" name="password" placeholder="Create a strong password"
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:outline-none transition-all pr-10"
+                 required>
+          <button type="button" id="toggle-password" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+        <div class="password-strength-meter" id="password-strength-meter"></div>
+        <div class="text-xs text-gray-500 mt-1 hidden" id="password-hint">Minimum 8 characters with letters and numbers</div>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-medium mb-1">
+          <i class="fas fa-lock text-green-600 mr-1"></i>
+          Confirm Password
+        </label>
+        <div class="relative">
+          <input type="password" id="signup-confirm-password" name="confirm-password" placeholder="Confirm your password"
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:outline-none transition-all pr-10"
+                 required>
+          <button type="button" id="toggle-confirm-password" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- State -->
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-medium mb-1">
+          <i class="fas fa-map-marker-alt text-green-600 mr-1"></i>
+          State
+        </label>
+        <select id="signup-state" name="state" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:outline-none transition-all appearance-none bg-white"
+                required>
+          <option value="">Select State</option>
+          <!-- States will be loaded from backend -->
+        </select>
+      </div>
+
+      <!-- District -->
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-medium mb-1">
+          <i class="fas fa-map-pin text-green-600 mr-1"></i>
+          District
+        </label>
+        <select id="signup-district" name="district" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:outline-none transition-all appearance-none bg-white"
+                disabled required>
+          <option value="">Select State first</option>
+        </select>
+      </div>
+
+      <!-- Farm Size -->
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-medium mb-1">
+          <i class="fas fa-ruler text-green-600 mr-1"></i>
+          Farm Size
+        </label>
+        <select id="signup-farm-size" name="farm_size" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:outline-none transition-all appearance-none bg-white"
+                required>
+          <option value="">Select Farm Size</option>
+          <option value="small">Small (0.5-2 acres)</option>
+          <option value="marginal">Marginal (2-5 acres)</option>
+          <option value="medium">Medium (5-10 acres)</option>
+          <option value="large">Large (10+ acres)</option>
+        </select>
+      </div>
+
+      <!-- Primary Crop -->
+      <div class="mb-6">
+        <label class="block text-gray-700 text-sm font-medium mb-1">
+          <i class="fas fa-seedling text-green-600 mr-1"></i>
+          Primary Crop
+        </label>
+        <select id="signup-crop" name="primary_crop" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:outline-none transition-all appearance-none bg-white"
+                required>
+          <option value="">Select Primary Crop</option>
+          <optgroup label="Cereals">
+            <option>Rice</option>
+            <option>Wheat</option>
+            <option>Maize</option>
+            <option>Barley</option>
+            <option>Millets</option>
+          </optgroup>
+          <optgroup label="Pulses">
+            <option>Chickpea (Chana)</option>
+            <option>Pigeon Pea (Tur/Arhar)</option>
+            <option>Black Gram (Urad)</option>
+            <option>Green Gram (Moong)</option>
+          </optgroup>
+          <optgroup label="Cash Crops">
+            <option>Cotton</option>
+            <option>Sugarcane</option>
+            <option>Jute</option>
+          </optgroup>
+          <optgroup label="Vegetables">
+            <option>Tomato</option>
+            <option>Potato</option>
+            <option>Onion</option>
+            <option>Brinjal (Eggplant)</option>
+          </optgroup>
+          <optgroup label="Fruits">
+            <option>Mango</option>
+            <option>Banana</option>
+            <option>Orange</option>
+            <option>Guava</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <!-- Terms Agreement -->
+      <div class="mb-6">
+        <div class="flex items-start">
+          <input type="checkbox" id="terms-agreement" name="terms" class="mt-1 mr-2" required>
+          <label for="terms-agreement" class="text-sm text-gray-700">
+            I agree to the <a href="#" class="text-green-600 hover:underline">Terms of Service</a> and <a href="#" class="text-green-600 hover:underline">Privacy Policy</a>
+          </label>
+        </div>
+        <div class="text-xs text-red-500 mt-1 hidden" id="terms-error">You must agree to the terms</div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" id="signup-submit" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-all font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+        <span id="submit-text">Create Account</span>
+        <div id="loading-spinner" class="hidden ml-2">
+          <div class="spinner"></div>
+        </div>
+      </button>
+    </form>
+
+    <!-- Login Link -->
+    <p class="text-center text-sm text-gray-600 mt-4">
+      Already have an account?
+      <a href="login.html" class="text-green-700 hover:underline font-medium ml-1">Login here</a>
+    </p>
+  </div>
+
+  <script>
+    // ========== CONFIGURATION ==========
+    const API_BASE = 'http://localhost:5001';
+    
+    // ========== STATE MANAGEMENT ==========
+    let statesData = {};
+    
+    // ========== VALIDATION FUNCTIONS ==========
+    function validateEmail(email) {
+      const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return re.test(email);
+    }
+    
+    function validateUsername(username) {
+      const re = /^[a-zA-Z0-9_]{3,20}$/;
+      return re.test(username);
+    }
+    
+    function validatePassword(password) {
+      // At least 8 chars, contains letter and number
+      const re = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+      return re.test(password);
+    }
+    
+    function calculatePasswordStrength(password) {
+      let strength = 0;
+      if (password.length >= 8) strength++;
+      if (/[A-Z]/.test(password)) strength++;
+      if (/[a-z]/.test(password)) strength++;
+      if (/\d/.test(password)) strength++;
+      if (/[^A-Za-z0-9]/.test(password)) strength++;
+      
+      if (strength <= 2) return 'weak';
+      if (strength <= 4) return 'fair';
+      return 'good';
+    }
+    
+    // ========== UI HELPERS ==========
+    function showMessage(message, type = 'error') {
+      const messageDiv = document.getElementById('auth-message');
+      const colors = {
+        success: 'bg-green-100 border border-green-400 text-green-700',
+        error: 'bg-red-100 border border-red-400 text-red-700',
+        warning: 'bg-yellow-100 border border-yellow-400 text-yellow-700',
+        info: 'bg-blue-100 border border-blue-400 text-blue-700'
+      };
+      
+      messageDiv.innerHTML = `
+        <div class="p-3 rounded-lg ${colors[type]}">
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} mr-2"></i>
+            </div>
+            <div>${message}</div>
+          </div>
+        </div>
+      `;
+      messageDiv.classList.remove('hidden');
+      
+      // Auto-hide success messages after 5 seconds
+      if (type === 'success') {
+        setTimeout(() => {
+          messageDiv.classList.add('hidden');
+        }, 5000);
+      }
+    }
+    
+    function clearMessage() {
+      document.getElementById('auth-message').classList.add('hidden');
+    }
+    
+    function markFieldValid(field) {
+      field.classList.remove('input-invalid');
+      field.classList.add('input-valid');
+    }
+    
+    function markFieldInvalid(field) {
+      field.classList.remove('input-valid');
+      field.classList.add('input-invalid');
+    }
+    
+    function clearFieldStatus(field) {
+      field.classList.remove('input-valid', 'input-invalid');
+    }
+    
+    function updatePasswordStrength(password) {
+      const meter = document.getElementById('password-strength-meter');
+      const hint = document.getElementById('password-hint');
+      
+      if (!password) {
+        meter.className = 'password-strength-meter';
+        hint.classList.add('hidden');
+        return;
+      }
+      
+      const strength = calculatePasswordStrength(password);
+      meter.className = `password-strength-meter strength-${strength}`;
+      hint.classList.remove('hidden');
+      
+      // Update hint text based on strength
+      const strengthText = {
+        weak: 'Password is weak. Add more characters, numbers, and symbols.',
+        fair: 'Password is fair. Could be stronger.',
+        good: 'Password is strong!'
+      };
+      
+      hint.textContent = strengthText[strength];
+      hint.className = `text-xs mt-1 ${
+        strength === 'weak' ? 'text-red-500' : 
+        strength === 'fair' ? 'text-yellow-500' : 
+        'text-green-500'
+      }`;
+    }
+    
+    // ========== LOAD STATES FROM BACKEND ==========
+    async function loadStates() {
+      try {
+        const response = await fetch(`${API_BASE}/states-districts.json`);
+        if (!response.ok) throw new Error('Failed to load states');
+        
+        statesData = await response.json();
+        const stateSelect = document.getElementById('signup-state');
+        
+        // Clear existing options except first
+        stateSelect.innerHTML = '<option value="">Select State</option>';
+        
+        // Sort states alphabetically
+        const sortedStates = Object.keys(statesData).sort();
+        
+        // Add states
+        sortedStates.forEach(state => {
+          const option = document.createElement('option');
+          option.value = state;
+          option.textContent = state;
+          stateSelect.appendChild(option);
+        });
+        
+      } catch (error) {
+        console.error('Error loading states:', error);
+        showMessage('Unable to load states data. Please refresh the page.', 'error');
+        
+        // Load minimal fallback
+        loadFallbackStates();
+      }
+    }
+    
+    function loadFallbackStates() {
+      statesData = {
+        "Telangana": ["Hyderabad", "Warangal", "Karimnagar", "Khammam", "Nizamabad"],
+        "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Kurnool"],
+        "Karnataka": ["Bengaluru", "Mysuru", "Hubli", "Mangaluru", "Belagavi"],
+        "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad"],
+        "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem"]
+      };
+      
+      const stateSelect = document.getElementById('signup-state');
+      stateSelect.innerHTML = '<option value="">Select State</option>';
+      
+      Object.keys(statesData).sort().forEach(state => {
+        const option = document.createElement('option');
+        option.value = state;
+        option.textContent = state;
+        stateSelect.appendChild(option);
+      });
+    }
+    
+    function populateDistricts(state) {
+      const districtSelect = document.getElementById('signup-district');
+      
+      if (!state || !statesData[state]) {
+        districtSelect.innerHTML = '<option value="">Select State first</option>';
+        districtSelect.disabled = true;
+        clearFieldStatus(districtSelect);
+        return;
+      }
+      
+      districtSelect.innerHTML = '<option value="">Select District</option>';
+      
+      // Sort districts alphabetically
+      const sortedDistricts = [...statesData[state]].sort();
+      
+      sortedDistricts.forEach(district => {
+        const option = document.createElement('option');
+        option.value = district;
+        option.textContent = district;
+        districtSelect.appendChild(option);
+      });
+      
+      districtSelect.disabled = false;
+      clearFieldStatus(districtSelect);
+    }
+    
+    // ========== FORM SUBMISSION (FLASK-LOGIN COMPATIBLE) ==========
+    document.getElementById('signup-form').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      clearMessage();
+      
+      // Get form elements
+      const usernameEl = document.getElementById('signup-username');
+      const emailEl = document.getElementById('signup-email');
+      const passwordEl = document.getElementById('signup-password');
+      const confirmEl = document.getElementById('signup-confirm-password');
+      const stateEl = document.getElementById('signup-state');
+      const districtEl = document.getElementById('signup-district');
+      const farmEl = document.getElementById('signup-farm-size');
+      const cropEl = document.getElementById('signup-crop');
+      const termsEl = document.getElementById('terms-agreement');
+      
+      const submitBtn = document.getElementById('signup-submit');
+      const submitText = document.getElementById('submit-text');
+      const spinner = document.getElementById('loading-spinner');
+      
+      // Clear all field status
+      [usernameEl, emailEl, passwordEl, confirmEl, stateEl, districtEl, farmEl, cropEl].forEach(clearFieldStatus);
+      document.getElementById('terms-error').classList.add('hidden');
+      
+      // Validate form
+      let isValid = true;
+      const errors = [];
+      
+      // Username validation
+      if (!usernameEl.value.trim()) {
+        markFieldInvalid(usernameEl);
+        errors.push('Username is required');
+        isValid = false;
+      } else if (!validateUsername(usernameEl.value.trim())) {
+        markFieldInvalid(usernameEl);
+        errors.push('Username must be 3-20 characters (letters, numbers, underscores only)');
+        isValid = false;
+      } else {
+        markFieldValid(usernameEl);
+      }
+      
+      // Email validation
+      if (!emailEl.value.trim()) {
+        markFieldInvalid(emailEl);
+        errors.push('Email is required');
+        isValid = false;
+      } else if (!validateEmail(emailEl.value.trim())) {
+        markFieldInvalid(emailEl);
+        errors.push('Please enter a valid email address');
+        isValid = false;
+      } else {
+        markFieldValid(emailEl);
+      }
+      
+      // Password validation
+      if (!passwordEl.value) {
+        markFieldInvalid(passwordEl);
+        errors.push('Password is required');
+        isValid = false;
+      } else if (!validatePassword(passwordEl.value)) {
+        markFieldInvalid(passwordEl);
+        errors.push('Password must be at least 8 characters with letters and numbers');
+        isValid = false;
+      } else {
+        markFieldValid(passwordEl);
+      }
+      
+      // Confirm password
+      if (!confirmEl.value) {
+        markFieldInvalid(confirmEl);
+        errors.push('Please confirm your password');
+        isValid = false;
+      } else if (passwordEl.value !== confirmEl.value) {
+        markFieldInvalid(passwordEl);
+        markFieldInvalid(confirmEl);
+        errors.push('Passwords do not match');
+        isValid = false;
+      } else {
+        markFieldValid(confirmEl);
+      }
+      
+      // State validation
+      if (!stateEl.value) {
+        markFieldInvalid(stateEl);
+        errors.push('Please select your state');
+        isValid = false;
+      } else {
+        markFieldValid(stateEl);
+      }
+      
+      // District validation
+      if (!districtEl.value) {
+        markFieldInvalid(districtEl);
+        errors.push('Please select your district');
+        isValid = false;
+      } else {
+        markFieldValid(districtEl);
+      }
+      
+      // Farm size validation
+      if (!farmEl.value) {
+        markFieldInvalid(farmEl);
+        errors.push('Please select farm size');
+        isValid = false;
+      } else {
+        markFieldValid(farmEl);
+      }
+      
+      // Crop validation
+      if (!cropEl.value) {
+        markFieldInvalid(cropEl);
+        errors.push('Please select primary crop');
+        isValid = false;
+      } else {
+        markFieldValid(cropEl);
+      }
+      
+      // Terms validation
+      if (!termsEl.checked) {
+        document.getElementById('terms-error').classList.remove('hidden');
+        errors.push('You must agree to the terms and conditions');
+        isValid = false;
+      }
+      
+      if (!isValid) {
+        showMessage(errors[0], 'error');
+        return;
+      }
+      
+      // Show loading state
+      submitBtn.disabled = true;
+      submitText.textContent = 'Creating Account...';
+      spinner.classList.remove('hidden');
+      
+      try {
+        // Prepare data for backend
+        const formData = {
+          username: usernameEl.value.trim(),
+          email: emailEl.value.trim().toLowerCase(),
+          password: passwordEl.value,
+          state: stateEl.value,
+          district: districtEl.value,
+          farm_size: farmEl.value,
+          primary_crop: cropEl.value
+        };
+        
+        // Optional: Add language preference if you want
+        const language = document.getElementById('language-select').value;
+        if (language) formData.preferred_language = language;
+        
+        console.log('Sending signup request:', { ...formData, password: '***' });
+        
+        // Send request to Flask-Login backend
+        const response = await fetch(`${API_BASE}/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(formData),
+          credentials: 'include' // IMPORTANT for Flask-Login sessions
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          // Flask-Login session created, store user info in localStorage
+          localStorage.setItem('user-name', data.user.username);
+          localStorage.setItem('user-email', data.user.email);
+          localStorage.setItem('user-id', data.user.id);
+          localStorage.setItem('profile_completed', data.user.profile_completed || 'false');
+          localStorage.setItem('user_location', `${data.user.district || ''}, ${data.user.state || ''}`);
+          localStorage.setItem('primary_crop', data.user.primary_crop || '');
+          localStorage.setItem('farm_size', data.user.farm_size ? `${data.user.farm_size} acres` : '');
+          
+          showMessage('Account created successfully! Redirecting to dashboard...', 'success');
+          
+          // Redirect after short delay
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 1500);
+          
+        } else {
+          // Handle backend error
+          const errorMessage = data.message || 'Signup failed. Please try again.';
+          showMessage(errorMessage, 'error');
+          
+          // Re-enable submit button
+          submitBtn.disabled = false;
+          submitText.textContent = 'Create Account';
+          spinner.classList.add('hidden');
+        }
+        
+      } catch (error) {
+        console.error('Signup error:', error);
+        showMessage('Network error. Please check your connection and try again.', 'error');
+        
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitText.textContent = 'Create Account';
+        spinner.classList.add('hidden');
+      }
+    });
+    
+    // ========== REAL-TIME VALIDATION ==========
+    // Username validation
+    document.getElementById('signup-username').addEventListener('input', function() {
+      const hint = document.getElementById('username-hint');
+      
+      if (!this.value.trim()) {
+        clearFieldStatus(this);
+        hint.classList.add('hidden');
+        return;
+      }
+      
+      if (validateUsername(this.value.trim())) {
+        markFieldValid(this);
+        hint.classList.add('hidden');
+      } else {
+        markFieldInvalid(this);
+        hint.classList.remove('hidden');
+      }
+    });
+    
+    // Email validation
+    document.getElementById('signup-email').addEventListener('input', function() {
+      if (!this.value.trim()) {
+        clearFieldStatus(this);
+        return;
+      }
+      
+      if (validateEmail(this.value.trim())) {
+        markFieldValid(this);
+      } else {
+        markFieldInvalid(this);
+      }
+    });
+    
+    // Password validation and strength
+    document.getElementById('signup-password').addEventListener('input', function() {
+      if (!this.value) {
+        clearFieldStatus(this);
+        updatePasswordStrength('');
+        return;
+      }
+      
+      if (validatePassword(this.value)) {
+        markFieldValid(this);
+      } else {
+        markFieldInvalid(this);
+      }
+      
+      updatePasswordStrength(this.value);
+    });
+    
+    // Confirm password validation
+    document.getElementById('signup-confirm-password').addEventListener('input', function() {
+      const password = document.getElementById('signup-password').value;
+      
+      if (!this.value) {
+        clearFieldStatus(this);
+        return;
+      }
+      
+      if (password === this.value) {
+        markFieldValid(this);
+        clearMessage();
+      } else {
+        markFieldInvalid(this);
+      }
+    });
+    
+    // State change handler
+    document.getElementById('signup-state').addEventListener('change', function() {
+      populateDistricts(this.value);
+      clearFieldStatus(this);
+    });
+    
+    // District change handler
+    document.getElementById('signup-district').addEventListener('change', function() {
+      clearFieldStatus(this);
+    });
+    
+    // Farm size change handler
+    document.getElementById('signup-farm-size').addEventListener('change', function() {
+      clearFieldStatus(this);
+    });
+    
+    // Crop change handler
+    document.getElementById('signup-crop').addEventListener('change', function() {
+      clearFieldStatus(this);
+    });
+    
+    // ========== PASSWORD VISIBILITY TOGGLE ==========
+    function setupPasswordToggle(passwordFieldId, toggleButtonId) {
+      const passwordField = document.getElementById(passwordFieldId);
+      const toggleButton = document.getElementById(toggleButtonId);
+      
+      toggleButton.addEventListener('click', function() {
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+        
+        // Update icon
+        const icon = this.querySelector('i');
+        if (type === 'password') {
+          icon.className = 'fas fa-eye';
+        } else {
+          icon.className = 'fas fa-eye-slash';
+        }
+      });
+    }
+    
+    // ========== LANGUAGE SELECTION ==========
+    document.getElementById('language-select').addEventListener('change', function() {
+      // Store language preference
+      localStorage.setItem('user-language', this.value);
+      
+      // In a full implementation, you would translate the page here
+      // For now, just store the preference
+      console.log('Language changed to:', this.value);
+    });
+    
+    // ========== INITIALIZATION ==========
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load states from backend
+      loadStates();
+      
+      // Setup password toggles
+      setupPasswordToggle('signup-password', 'toggle-password');
+      setupPasswordToggle('signup-confirm-password', 'toggle-confirm-password');
+      
+      // Restore language preference
+      const savedLanguage = localStorage.getItem('user-language') || 'en';
+      document.getElementById('language-select').value = savedLanguage;
+      
+      // Show welcome message
+      console.log('Signup page loaded. Backend:', API_BASE);
+    });
+    
+    // ========== GLOBAL FUNCTIONS ==========
+    window.validateEmail = validateEmail;
+    window.validateUsername = validateUsername;
+    window.validatePassword = validatePassword;
+    
+  </script>
+</body>
+</html>
