@@ -1,8 +1,9 @@
 {
+  "app_name": "Smart Crop Advisory",
   "welcome": "Welcome to Smart Crop Advisory",
   "dashboard": "Dashboard",
   "weather": "Weather",
-  "chatbot": "Ask the Assistant",
+  "chatbot": "AI Assistant",
   "voice_input": "Speak your question",
   "submit": "Submit",
   "logout": "Logout",
@@ -71,5 +72,18 @@
   "language_settings": "Language Settings",
   "select_language": "Select Language",
   "voice_settings": "Voice Settings",
-  "toggle_voice": "Toggle Voice Input/Output"
+  "toggle_voice": "Toggle Voice Input/Output",
+  "change_language": "Change Language",
+  "english": "English",
+  "hindi": "Hindi",
+  "telugu": "Telugu",
+  "tamil": "Tamil",
+  "marathi": "Marathi",
+  "bengali": "Bengali",
+  "current_language": "Current Language",
+  "browser_language": "Browser Language",
+  "auto_detect": "Auto Detect",
+  "apply_language": "Apply Language",
+  "language_changed": "Language Changed Successfully",
+  "guest_user": "Guest User"
 }
