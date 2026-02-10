@@ -34,6 +34,7 @@ class TranslationManager:
         
         # Create default English file if it doesn't exist
         default_translation = {
+            "app_name": "Smart Crop Advisory",
             "welcome": "Welcome to Smart Crop Advisory",
             "dashboard": "Dashboard",
             "weather": "Weather",
@@ -106,7 +107,20 @@ class TranslationManager:
             "language_settings": "Language Settings",
             "select_language": "Select Language",
             "voice_settings": "Voice Settings",
-            "toggle_voice": "Toggle Voice Input/Output"
+            "toggle_voice": "Toggle Voice Input/Output",
+            "change_language": "Change Language",
+            "english": "English",
+            "hindi": "Hindi",
+            "telugu": "Telugu",
+            "tamil": "Tamil",
+            "marathi": "Marathi",
+            "bengali": "Bengali",
+            "current_language": "Current Language",
+            "browser_language": "Browser Language",
+            "auto_detect": "Auto Detect",
+            "apply_language": "Apply Language",
+            "language_changed": "Language Changed Successfully",
+            "guest_user": "Guest User"
         }
         
         en_file = os.path.join(translation_dir, 'en.json')
@@ -138,6 +152,75 @@ class TranslationManager:
 
 # Initialize translation manager (will be set later)
 translation_manager = None
+
+# ========== LANGUAGE DETECTION HELPERS ==========
+def detect_browser_language(request):
+    """
+    Smart browser language detection prioritizing Indian languages.
+    Industry-standard detection chain.
+    """
+    if not hasattr(request, 'accept_languages') or not request.accept_languages:
+        return 'en'
+    
+    browser_langs = request.accept_languages
+    
+    # Priority order for Indian languages
+    indian_languages = ['hi', 'te', 'ta', 'bn', 'mr', 'gu', 'kn', 'ml', 'pa', 'ur']
+    all_supported = ['en'] + indian_languages
+    
+    # Check for exact matches first
+    for lang in all_supported:
+        if browser_langs.best_match([lang]):
+            return lang
+    
+    # Check for regional variants (hi-IN, te-IN, etc.)
+    for lang in indian_languages:
+        regional_code = f"{lang}-IN"
+        if browser_langs.best_match([regional_code]):
+            return lang
+    
+    # Check for country codes (IN for India)
+    if browser_langs.best_match(['en-IN', 'en-US', 'en-GB']):
+        return 'en'
+    
+    # Default to English
+    return 'en'
+
+def get_user_language_from_request(request):
+    """
+    Industry-standard language detection chain.
+    Priority: Query param → Session → Cookie → Logged-in user → Browser → Default
+    """
+    # 1. Query parameter (manual override) - ?lang=hi
+    lang_param = request.args.get('lang')
+    if lang_param:
+        # Clean and validate
+        lang_param = lang_param.lower().strip()
+        if lang_param in ['en', 'hi', 'te', 'ta', 'bn', 'mr']:
+            return lang_param
+    
+    # 2. Session (current visit preference)
+    if 'user_language' in session:
+        session_lang = session['user_language']
+        if session_lang in ['en', 'hi', 'te', 'ta', 'bn', 'mr']:
+            return session_lang
+    
+    # 3. Cookie (previous visits preference)
+    cookie_lang = request.cookies.get('preferred_language')
+    if cookie_lang and cookie_lang in ['en', 'hi', 'te', 'ta', 'bn', 'mr']:
+        return cookie_lang
+    
+    # 4. Logged-in user preference
+    if current_user.is_authenticated and current_user.preferred_language:
+        return current_user.preferred_language
+    
+    # 5. Browser language detection
+    browser_lang = detect_browser_language(request)
+    if browser_lang in ['en', 'hi', 'te', 'ta', 'bn', 'mr']:
+        return browser_lang
+    
+    # 6. Default
+    return 'en'
 
 # ========== FLASK APP INITIALIZATION ==========
 app = Flask(__name__, 
@@ -267,7 +350,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     preferred_language = db.Column(db.String(10), default='en')
-    voice_enabled = db.Column(db.Boolean, default=True)  # NEW: Voice feature toggle
+    voice_enabled = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
     
@@ -333,8 +416,8 @@ class ChatMessage(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     role = db.Column(db.String(20), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    language = db.Column(db.String(10), default='en')  # NEW: Store message language
-    was_spoken = db.Column(db.Boolean, default=False)  # NEW: Track if TTS was used
+    language = db.Column(db.String(10), default='en')
+    was_spoken = db.Column(db.Boolean, default=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 # ========== FLASK-LOGIN USER LOADER ==========
@@ -700,16 +783,88 @@ def set_language():
         current_user.preferred_language = language
         db.session.commit()
         
+        # Update session
+        session['user_language'] = language
+        
         return jsonify({
             'success': True,
             'message': f'Language updated to {language}',
-            'language': language
+            'language': language,
+            'user_id': current_user.id
         })
         
     except Exception as e:
         return jsonify({
             'success': False,
             'message': f'Error updating language: {str(e)}'
+        }), 500
+
+@app.route('/api/set-guest-language', methods=['POST'])
+def set_guest_language():
+    """Set language preference for guest users"""
+    try:
+        data = request.get_json()
+        language = data.get('language', 'en')
+        
+        # Validate language code
+        valid_languages = ['en', 'hi', 'te', 'ta', 'mr', 'bn']
+        if language not in valid_languages:
+            language = 'en'
+        
+        # Store in session
+        session['user_language'] = language
+        session['is_guest'] = True
+        
+        # Create response with cookie
+        response = jsonify({
+            'success': True,
+            'message': f'Language updated to {language}',
+            'language': language,
+            'is_guest': True
+        })
+        
+        # Set cookie for persistence (1 year)
+        response.set_cookie(
+            'preferred_language',
+            language,
+            max_age=365*24*60*60,  # 1 year
+            path='/',
+            httponly=False,  # Allow JavaScript to read
+            samesite='Lax'
+        )
+        
+        return response
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error setting guest language: {str(e)}'
+        }), 500
+
+@app.route('/api/detect-language', methods=['GET'])
+def detect_language():
+    """Detect and suggest language based on browser"""
+    try:
+        browser_lang = detect_browser_language(request)
+        
+        # Get suggestion based on browser language
+        suggestion = {
+            'detected': browser_lang,
+            'confidence': 'high',
+            'suggested_language': browser_lang,
+            'message': f'We detected your browser language as {browser_lang}. Would you like to use this language?'
+        }
+        
+        return jsonify({
+            'success': True,
+            'suggestion': suggestion,
+            'current_language': session.get('user_language', 'en')
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error detecting language: {str(e)}'
         }), 500
 
 @app.route('/api/translate', methods=['POST'])
@@ -796,17 +951,49 @@ def inject_user_and_language():
     """Inject user and language info into all templates"""
     context = {}
     
+    # Get current language using detection chain
+    current_lang = get_user_language_from_request(request)
+    
+    # Store in session for future requests
+    session['user_language'] = current_lang
+    
     if current_user.is_authenticated:
         context['current_user'] = current_user
-        context['user_language'] = current_user.preferred_language
+        context['user_language'] = current_user.preferred_language or current_lang
         context['voice_enabled'] = current_user.voice_enabled
+        context['is_guest'] = False
+        
+        # Sync if different (user changed language while logged in)
+        if current_user.preferred_language != current_lang:
+            current_user.preferred_language = current_lang
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
     else:
         context['current_user'] = None
-        context['user_language'] = 'en'
+        context['user_language'] = current_lang
         context['voice_enabled'] = True
+        context['is_guest'] = True
     
     # Make translation function available
-    context['t'] = translation_manager.get_text if translation_manager else lambda key, lang='en': key
+    if translation_manager:
+        context['t'] = translation_manager.get_text
+    else:
+        context['t'] = lambda key, lang='en': key
+    
+    # Add list of available languages for templates
+    context['available_languages'] = [
+        {'code': 'en', 'name': 'English', 'native': 'English'},
+        {'code': 'hi', 'name': 'Hindi', 'native': 'हिन्दी'},
+        {'code': 'te', 'name': 'Telugu', 'native': 'తెలుగు'},
+        {'code': 'ta', 'name': 'Tamil', 'native': 'தமிழ்'},
+        {'code': 'mr', 'name': 'Marathi', 'native': 'मराठी'},
+        {'code': 'bn', 'name': 'Bengali', 'native': 'বাংলা'}
+    ]
+    
+    # Add browser language detection info
+    context['browser_language'] = detect_browser_language(request)
     
     return context
 
@@ -869,12 +1056,13 @@ def signup():
                 'message': 'Username already taken'
             }), 400
 
-        # Create new user
+        # Create new user with detected language
+        browser_lang = detect_browser_language(request)
         new_user = User(
             username=username,
             email=email,
-            preferred_language=data.get('preferred_language', 'en'),
-            voice_enabled=data.get('voice_enabled', True)  # NEW: Voice preference
+            preferred_language=browser_lang,  # Auto-detect from browser
+            voice_enabled=data.get('voice_enabled', True)
         )
         new_user.set_password(password)
         
@@ -899,10 +1087,14 @@ def signup():
         # Log the user in
         login_user(new_user, remember=True)
         
+        # Set session language
+        session['user_language'] = browser_lang
+        
         return jsonify({
             'success': True,
             'message': 'Account created successfully!',
-            'user': new_user.to_dict()
+            'user': new_user.to_dict(),
+            'detected_language': browser_lang
         }), 201
 
     except Exception as e:
@@ -933,6 +1125,9 @@ def login():
             if user.is_active:
                 login_user(user, remember=True)
                 
+                # Set session language to user's preference
+                session['user_language'] = user.preferred_language or 'en'
+                
                 return jsonify({
                     'success': True,
                     'message': 'Login successful!',
@@ -960,6 +1155,7 @@ def login():
 def logout():
     """User logout"""
     logout_user()
+    # Keep guest language preference
     return jsonify({
         'success': True,
         'message': 'Logged out successfully'
@@ -977,7 +1173,8 @@ def check_auth():
     
     return jsonify({
         'success': True,
-        'authenticated': False
+        'authenticated': False,
+        'guest_language': session.get('user_language', 'en')
     }), 200
 
 # ========== PROFILE ROUTES ==========
@@ -1014,6 +1211,8 @@ def save_profile():
                     setattr(user, field, bool(data[field]))
                 elif field == 'preferred_language' and data[field]:
                     setattr(user, field, data[field].strip())
+                    # Update session language
+                    session['user_language'] = data[field].strip()
                 elif data[field]:
                     setattr(user, field, data[field].strip())
         
@@ -1385,9 +1584,7 @@ def chat():
         user_id = current_user.id if current_user.is_authenticated else None
         
         # Get user language for saving message
-        user_language = 'en'
-        if current_user.is_authenticated:
-            user_language = current_user.preferred_language or 'en'
+        user_language = get_user_language_from_request(request)
         
         # Save user message
         save_chat_message(session_id, user_id, 'user', user_msg, language=user_language)
@@ -1558,12 +1755,21 @@ def test():
             'POST /api/fertilizer-recommendation',
             'GET /api/quick-recommendations',
             'GET /api/task-recommendation/<task_type>',
-            'GET /api/languages',  # NEW
-            'POST /api/set-language',  # NEW
-            'POST /api/translate',  # NEW
-            'POST /api/voice/settings',  # NEW
-            'POST /api/voice/speak'  # NEW
-        ]
+            'GET /api/languages',
+            'POST /api/set-language',
+            'POST /api/set-guest-language',
+            'GET /api/detect-language',
+            'POST /api/translate',
+            'POST /api/voice/settings',
+            'POST /api/voice/speak'
+        ],
+        'language_info': {
+            'current_language': get_user_language_from_request(request),
+            'browser_language': detect_browser_language(request),
+            'session_language': session.get('user_language'),
+            'user_authenticated': current_user.is_authenticated,
+            'user_language': current_user.preferred_language if current_user.is_authenticated else None
+        }
     })
 
 # ========== CORS HEADERS ==========
@@ -1613,7 +1819,6 @@ with app.app_context():
     db.create_all()
     
     # Initialize translation manager
-
     translation_manager = TranslationManager(app)
     
     print("=" * 60)
@@ -1632,6 +1837,9 @@ with app.app_context():
     print("🌱 Personalized Fertilizer Recommendations API")
     print("🗣️  Voice Features Enabled")
     print("🌍 Multi-Language Support Available")
+    print("📱 Industry-standard language detection")
+    print("👤 Guest user language persistence")
+    print("🔗 Context processor provides {{ user_language }} and {{ t() }}")
     print("=" * 60)
     
     if not GROQ_API_KEY:
