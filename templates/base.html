@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="{{ user_language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ t('app_name', user_language) }}{% endblock %}</title>
+  
+  <!-- COMMON CSS (All pages get these) -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- PAGE-SPECIFIC CSS (Pages can add their own) -->
+  {% block styles %}{% endblock %}
+  
+  <!-- COMMON STYLES FOR LANGUAGE SUPPORT -->
+  <style>
+    /* Language switcher styles - can be overridden by pages */
+    .language-switcher-container {
+      display: inline-block;
+    }
+    
+    .language-select {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .language-select:hover {
+      border-color: #10b981;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+    }
+    
+    .language-select:focus {
+      outline: none;
+      border-color: #10b981;
+    }
+    
+    /* RTL support if needed later */
+    [dir="rtl"] .language-switcher-container {
+      direction: rtl;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <!-- 
+    BLOCK SYSTEM: Each page can choose what to include
+    
+    Option 1: Page includes language switcher in its own layout
+    Option 2: Page uses default language switcher placement
+    Option 3: Page hides language switcher (empty block)
+  -->
+  
+  <!-- BLOCK 1: Language Switcher (OPTIONAL - pages can override) -->
+  {% block language_switcher %}
+    <!-- Default: Simple language switcher -->
+    <div class="language-switcher-default fixed top-4 right-4 z-50">
+      <select id="languageSelect" class="language-select">
+        {% for lang in available_languages %}
+          <option value="{{ lang.code }}" {% if lang.code == user_language %}selected{% endif %}>
+            {{ lang.native }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+  {% endblock %}
+  
+  <!-- BLOCK 2: Page Header/Navigation (OPTIONAL) -->
+  {% block header %}{% endblock %}
+  
+  <!-- BLOCK 3: Sidebar (OPTIONAL - for pages like chatbot.html) -->
+  {% block sidebar %}{% endblock %}
+  
+  <!-- BLOCK 4: Main Content (REQUIRED - every page MUST fill this) -->
+  <main class="{% block main_class %}{% endblock %}">
+    {% block content %}
+      <!-- ERROR: Page didn't provide content -->
+      <div class="p-8 text-center">
+        <h1 class="text-2xl text-red-600">Error: This page didn't provide content</h1>
+      </div>
+    {% endblock %}
+  </main>
+  
+  <!-- BLOCK 5: Footer (OPTIONAL) -->
+  {% block footer %}{% endblock %}
+  
+  <!-- COMMON JAVASCRIPT -->
+  <script src="{{ url_for('static', filename='js/language_manager.js') }}"></script>
+  
+  <!-- Language switcher initialization -->
+  <script>
+    // Initialize language switcher if it exists
+    document.addEventListener('DOMContentLoaded', function() {
+      const languageSelect = document.getElementById('languageSelect');
+      if (languageSelect) {
+        languageSelect.addEventListener('change', function() {
+          const newLang = this.value;
+          
+          // Use LanguageManager if available
+          if (window.languageManager) {
+            window.languageManager.changeLanguage(newLang);
+          } else {
+            // Fallback: Reload page with language parameter
+            window.location.href = window.location.pathname + '?lang=' + newLang;
+          }
+        });
+      }
+      
+      // Initialize LanguageManager globally
+      if (typeof LanguageManager !== 'undefined') {
+        window.languageManager = new LanguageManager();
+      }
+    });
+  </script>
+  
+  <!-- PAGE-SPECIFIC JAVASCRIPT (Pages can add their own) -->
+  {% block scripts %}{% endblock %}
+</body>
+</html>
