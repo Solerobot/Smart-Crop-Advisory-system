@@ -1326,7 +1326,206 @@ def fertilizer_recommendation():
             'message': f'Error getting fertilizer data: {str(e)}',
             'fallback_data': generate_fallback_response("fertilizer")
         }), 500
+# ========== FARM UPDATES - PERSONALIZED LLM ENDPOINT ==========
+@app.route('/api/farm-updates', methods=['GET'])
+@login_required
+def get_farm_updates():
+    """
+    Generate 3 personalized farm updates using LLM
+    Based on: crop, location, season, soil, irrigation, weather
+    Returns: [{icon, iconColor, bgColor, title, content}]
+    """
+    try:
+        user = current_user
+        
+        # ========== 1. LANGUAGE DETECTION ==========
+        # Get user's preferred language
+        user_lang = user.preferred_language or 'en'
+        lang_name = {
+            'en': 'English',
+            'hi': 'Hindi',
+            'te': 'Telugu',
+            'ta': 'Tamil',
+            'mr': 'Marathi',
+            'bn': 'Bengali'
+        }.get(user_lang, 'English')
+        
+        # ========== 2. SEASON DETECTION ==========
+        month = datetime.now().month
+        if month in [6, 7, 8, 9, 10]:
+            season = "Kharif (Monsoon)"
+        elif month in [11, 12, 1, 2, 3]:
+            season = "Rabi (Winter)"
+        else:
+            season = "Zaid (Summer)"
+        
+        # ========== 3. CROP STAGE DETECTION ==========
+        crop_stage = "Vegetative"
+        if user.primary_crop:
+            crop_stages = {
+                'Rice': 'Tillering',
+                'Wheat': 'Flowering',
+                'Maize': 'Silking',
+                'Cotton': 'Boll formation',
+                'Sugarcane': 'Grand growth',
+                'Tomato': 'Fruiting',
+                'Potato': 'Tuber initiation'
+            }
+            crop_stage = crop_stages.get(user.primary_crop, 'Vegetative')
+        
+        # ========== 4. WEATHER DATA ==========
+        weather_condition = "Partly cloudy"
+        weather_temp = "28"
+        if user.latitude and user.longitude:
+            try:
+                weather_response = requests.get(
+                    f"https://api.open-meteo.com/v1/forecast",
+                    params={
+                        'latitude': user.latitude,
+                        'longitude': user.longitude,
+                        'current': 'temperature_2m,weather_code',
+                        'forecast_days': 1,
+                        'timezone': 'auto'
+                    },
+                    timeout=3
+                )
+                if weather_response.ok:
+                    weather_data = weather_response.json()
+                    weather_temp = str(round(weather_data['current']['temperature_2m']))
+                    code = weather_data['current']['weather_code']
+                    if code == 0: weather_condition = "Clear sky"
+                    elif code == 1: weather_condition = "Mainly clear"
+                    elif code == 2: weather_condition = "Partly cloudy"
+                    elif code == 3: weather_condition = "Overcast"
+                    elif code >= 45 and code <= 48: weather_condition = "Foggy"
+                    elif code >= 51 and code <= 67: weather_condition = "Rainy"
+                    elif code >= 80 and code <= 82: weather_condition = "Rain showers"
+                    elif code >= 95 and code <= 99: weather_condition = "Thunderstorm"
+            except:
+                pass
+        
+        # ========== 5. LLM PROMPT ==========
+        prompt = f"""
+        You are an agricultural expert advisor for Indian farmers.
+        
+        --- CRITICAL LANGUAGE INSTRUCTION ---
+        You MUST respond in {lang_name} language.
+        The user's preferred language is {user_lang}.
+        
+        If user prefers Hindi: Write ALL text in Hindi (हिन्दी)
+        If user prefers Telugu: Write ALL text in Telugu (తెలుగు)
+        If user prefers Tamil: Write ALL text in Tamil (தமிழ்)
+        If user prefers English: Write in English
+        
+        DO NOT write in English if the user prefers another language.
+        --------------------------------------
+        
+        Generate 3 personalized, actionable farm updates based on this farmer's profile:
 
+        --- FARMER PROFILE ---
+        • Location: {user.district or 'Unknown'}, {user.state or 'Unknown'}
+        • Primary Crop: {user.primary_crop or 'Not specified'}
+        • Farm Size: {user.farm_size or 'Unknown'} acres
+        • Soil Type: {user.soil_type or 'Not specified'}
+        • Irrigation: {user.irrigation_type or 'Not specified'}
+        • Crop Stage: {crop_stage}
+        • Current Season: {season}
+        • Current Date: {datetime.now().strftime('%B %d, %Y')}
+
+        --- CURRENT WEATHER ---
+        • Temperature: {weather_temp}°C
+        • Conditions: {weather_condition}
+
+        --- INSTRUCTIONS ---
+        Generate EXACTLY 3 updates in this JSON format:
+        {{
+            "updates": [
+                {{
+                    "icon": "cloud-sun/seedling/chart-line/tint/bug/calendar-alt/exclamation-triangle",
+                    "iconColor": "blue-500/green-500/yellow-500/red-500/purple-500",
+                    "bgColor": "blue-100/green-100/yellow-100/red-100/purple-100",
+                    "title": "Short title (2-4 words)",
+                    "content": "One sentence, specific actionable advice for today or this week"
+                }}
+            ]
+        }}
+
+        --- UPDATE CATEGORIES (mix them) ---
+        1. WEATHER ADVISORY: Based on current conditions, specific to their crop
+        2. CROP TASK: What they should do TODAY or THIS WEEK
+        3. MARKET INSIGHT: Price trend or selling advice for their crop
+        4. PEST/DISEASE WATCH: Seasonal risks for their specific crop
+        5. FERTILIZER TIP: Application timing or quantity
+        6. IRRIGATION ADVICE: Based on weather and crop stage
+
+        --- CONSTRAINTS ---
+        • MUST be specific to {user.primary_crop or 'their crops'} in {user.district or 'their area'}
+        • MUST be actionable (what to do, when to do it)
+        • Use simple, clear language
+        • No generic advice like "monitor crops regularly"
+        • Each update should be from a different category
+        """
+
+        # ========== 6. CALL LLM ==========
+        llm_response = call_llm_api(prompt)
+        
+        # ========== 7. PROCESS RESPONSE ==========
+        if isinstance(llm_response, dict) and 'updates' in llm_response:
+            updates = llm_response['updates'][:3]
+        else:
+            updates = generate_fallback_updates(user)
+        
+        return jsonify({
+            'success': True,
+            'updates': updates,
+            'generated_at': datetime.utcnow().isoformat()
+        }), 200
+        
+    except Exception as e:
+        print(f"Farm updates error: {e}")
+        return jsonify({
+            'success': False,
+            'message': str(e),
+            'updates': generate_fallback_updates(current_user)
+        }), 200
+
+
+def generate_fallback_updates(user):
+    """Generate fallback farm updates when LLM fails"""
+    crop = user.primary_crop or 'your crops'
+    location = user.district or 'your area'
+    
+    month = datetime.now().month
+    if month in [6, 7, 8, 9, 10]:
+        season_task = f"Perfect time for {crop} transplanting. Ensure adequate water."
+    elif month in [11, 12, 1, 2, 3]:
+        season_task = f"Prepare fields for {crop} sowing. Test soil moisture."
+    else:
+        season_task = f"Monitor {crop} for pest activity during this season."
+    
+    return [
+        {
+            "icon": "cloud-sun",
+            "iconColor": "blue-500",
+            "bgColor": "blue-100",
+            "title": "Weather Outlook",
+            "content": f"Fair weather expected in {location} next 3 days. Good for field work."
+        },
+        {
+            "icon": "seedling",
+            "iconColor": "green-500",
+            "bgColor": "green-100",
+            "title": "Crop Task",
+            "content": season_task
+        },
+        {
+            "icon": "chart-line",
+            "iconColor": "yellow-500",
+            "bgColor": "yellow-100",
+            "title": "Market Watch",
+            "content": f"{crop} prices are stable. Consider checking local mandi rates."
+        }
+    ]
 @app.route('/api/quick-recommendations', methods=['GET'])
 @login_required
 def quick_recommendations():
