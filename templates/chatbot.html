@@ -1,12 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agricultural Assistant | Smart Crop Advisory</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
+<!-- templates/chatbot.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ t('chatbot', user_language) }} - {{ t('app_name', user_language) }}{% endblock %}
+
+{% block styles %}
+<style>
     * {
       margin: 0;
       padding: 0;
@@ -502,479 +500,504 @@
         gap: 2px;
       }
     }
-  </style>
-</head>
-<body>
-  <div class="chat-container">
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
     <!-- Sidebar -->
     <div class="sidebar">
-      <div class="sidebar-header">
-        <h2 class="text-xl font-bold">🌾 Farm Assistant</h2>
-        <p class="text-sm opacity-90 mt-1">Ask anything about farming</p>
-      </div>
-      
-      <div class="sidebar-nav">
-        <a href="dashboard.html" class="nav-item">
-          <i class="fas fa-home"></i>
-          <span>Dashboard</span>
-        </a>
+        <div class="sidebar-header">
+            <h2 class="text-xl font-bold">{{ t('app_name', user_language) }}</h2>
+            <p class="text-sm opacity-90 mt-1">{{ t('chatbot', user_language) }}</p>
+        </div>
         
-        <a href="weather.html" class="nav-item">
-          <i class="fas fa-cloud-sun"></i>
-          <span>Weather</span>
-        </a>
-        
-        <a href="fertilizer.html" class="nav-item">
-          <i class="fas fa-seedling"></i>
-          <span>Fertilizer</span>
-        </a>
-        
-        <div class="mt-8 pt-6 border-t border-gray-200">
-          <div class="text-xs text-gray-500 mb-3 px-4">CHAT ACTIONS</div>
-          
-          <div onclick="clearChat()" class="nav-item">
-            <i class="fas fa-trash-alt"></i>
-            <span>Clear Chat</span>
-          </div>
-          
-          <div onclick="exportChat()" class="nav-item">
-            <i class="fas fa-download"></i>
-            <span>Export Chat</span>
-          </div>
+        <div class="sidebar-nav">
+            <!-- Homepage option -->
+            <a href="/" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>{{ t('home', user_language) }}</span>
+            </a>
+            
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>{{ t('dashboard', user_language) }}</span>
+            </a>
+            
+            <a href="weather.html" class="nav-item">
+                <i class="fas fa-cloud-sun"></i>
+                <span>{{ t('weather', user_language) }}</span>
+            </a>
+            
+            <a href="fertilizer.html" class="nav-item">
+                <i class="fas fa-seedling"></i>
+                <span>{{ t('fertilizer', user_language) }}</span>
+            </a>
+            
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <div class="text-xs text-gray-500 mb-3 px-4">{{ t('chat_actions', user_language) }}</div>
+                
+                <div onclick="clearChat()" class="nav-item">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>{{ t('clear_chat', user_language) }}</span>
+                </div>
+                
+                <div onclick="exportChat()" class="nav-item">
+                    <i class="fas fa-download"></i>
+                    <span>{{ t('export_chat', user_language) }}</span>
+                </div>
 
-          <div onclick="toggleVoiceSettings()" class="nav-item">
-            <i class="fas fa-microphone"></i>
-            <span>Voice Settings</span>
-          </div>
-        </div>
+                <div onclick="toggleVoiceSettings()" class="nav-item">
+                    <i class="fas fa-microphone"></i>
+                    <span>{{ t('voice_settings', user_language) }}</span>
+                </div>
+            </div>
 
-        <!-- Voice Settings Panel -->
-        <div id="voiceSettingsPanel" class="voice-settings hidden">
-          <div class="text-sm font-semibold text-gray-700 mb-3">Voice Settings</div>
-          <label>
-            <input type="checkbox" id="voiceInputToggle" checked>
-            Enable Voice Input
-          </label>
-          <label>
-            <input type="checkbox" id="ttsToggle">
-            Enable Text-to-Speech
-          </label>
-          <label>
-            <input type="checkbox" id="autoSendToggle">
-            Auto-send short voice queries
-          </label>
-          <div class="privacy-notice">
-            <i class="fas fa-info-circle mr-1"></i>
-            Voice input uses Google's speech recognition. Audio is sent to Google for processing.
-          </div>
+            <!-- Voice Settings Panel -->
+            <div id="voiceSettingsPanel" class="voice-settings hidden">
+                <div class="text-sm font-semibold text-gray-700 mb-3">{{ t('voice_settings', user_language) }}</div>
+                <label>
+                    <input type="checkbox" id="voiceInputToggle" checked>
+                    {{ t('enable_voice', user_language) }}
+                </label>
+                <label>
+                    <input type="checkbox" id="ttsToggle">
+                    {{ t('enable_tts', user_language) }}
+                </label>
+                <label>
+                    <input type="checkbox" id="autoSendToggle">
+                    {{ t('auto_send', user_language) }}
+                </label>
+                <div class="privacy-notice">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    {{ t('voice_privacy', user_language) }}
+                </div>
+            </div>
         </div>
-      </div>
-      
-      <div class="p-4 border-t border-gray-200">
-        <div class="text-center text-sm text-gray-600">
-          <p>💬 Instant Assistant</p>
-          <p class="text-xs mt-1">No login required</p>
+        
+        <div class="p-4 border-t border-gray-200">
+            <div class="text-center text-sm text-gray-600">
+                <p>💬 {{ t('instant_assistant', user_language) }}</p>
+                <p class="text-xs mt-1">{{ t('no_login', user_language) }}</p>
+            </div>
         </div>
-      </div>
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
-      <!-- Welcome Screen -->
-      <div id="welcomeCenter" class="welcome-center">
-        <div class="text-center max-w-2xl px-4">
-          <div class="w-24 h-24 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-            <span class="text-4xl">🤖</span>
-          </div>
-          
-          <h1 class="text-3xl font-bold text-gray-800 mb-4">Farm AI Assistant</h1>
-          <p class="text-lg text-gray-600 mb-8">Ask me anything about crops, weather, pests, or farming techniques</p>
-          
-          <!-- Quick Action Grid -->
-          <div class="grid grid-cols-2 gap-3 max-w-md mx-auto mb-8">
-            <button onclick="startQuickChat('What are the best crops to grow in the current season? Tell me about sowing time, duration, and yield expectations.')" class="quick-action-btn">
-              <span class="text-xl block mb-2">🌾</span>
-              <div class="text-sm font-medium text-gray-700">Crop Selection</div>
-            </button>
-            
-            <button onclick="startQuickChat('What fertilizer should I use for rice cultivation? Include NPK ratio, quantity per acre, and application schedule.')" class="quick-action-btn">
-              <span class="text-xl block mb-2">🌱</span>
-              <div class="text-sm font-medium text-gray-700">Fertilizer</div>
-            </button>
-            
-            <button onclick="startQuickChat('How to control pests in tomato crops organically? List preventive measures and treatment methods.')" class="quick-action-btn">
-              <span class="text-xl block mb-2">🐛</span>
-              <div class="text-sm font-medium text-gray-700">Pest Control</div>
-            </button>
-            
-            <button onclick="startQuickChat('Best irrigation methods for wheat farming? Include schedule, water requirements, and efficiency tips.')" class="quick-action-btn">
-              <span class="text-xl block mb-2">💧</span>
-              <div class="text-sm font-medium text-gray-700">Irrigation</div>
-            </button>
-          </div>
-          
-          <p class="text-sm text-gray-500">Type your question below or use the microphone button</p>
+        <!-- Welcome Screen -->
+        <div id="welcomeCenter" class="welcome-center">
+            <div class="text-center max-w-2xl px-4">
+                <div class="w-24 h-24 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                    <span class="text-4xl">🤖</span>
+                </div>
+                
+                <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ t('assistant_name', user_language) }}</h1>
+                <p class="text-lg text-gray-600 mb-8">{{ t('welcome_message', user_language) }}</p>
+                
+                <!-- Quick Action Grid -->
+                <div class="grid grid-cols-2 gap-3 max-w-md mx-auto mb-8">
+                    <button onclick="startQuickChat('{{ t('crop_prompt', user_language) }}')" class="quick-action-btn">
+                        <span class="text-xl block mb-2">🌾</span>
+                        <div class="text-sm font-medium text-gray-700">{{ t('crop_selection', user_language) }}</div>
+                    </button>
+                    
+                    <button onclick="startQuickChat('{{ t('fertilizer_prompt', user_language) }}')" class="quick-action-btn">
+                        <span class="text-xl block mb-2">🌱</span>
+                        <div class="text-sm font-medium text-gray-700">{{ t('fertilizer', user_language) }}</div>
+                    </button>
+                    
+                    <button onclick="startQuickChat('{{ t('pest_prompt', user_language) }}')" class="quick-action-btn">
+                        <span class="text-xl block mb-2">🐛</span>
+                        <div class="text-sm font-medium text-gray-700">{{ t('pest_control', user_language) }}</div>
+                    </button>
+                    
+                    <button onclick="startQuickChat('{{ t('irrigation_prompt', user_language) }}')" class="quick-action-btn">
+                        <span class="text-xl block mb-2">💧</span>
+                        <div class="text-sm font-medium text-gray-700">{{ t('irrigation', user_language) }}</div>
+                    </button>
+                </div>
+                
+                <p class="text-sm text-gray-500">{{ t('type_or_speak', user_language) }}</p>
+            </div>
         </div>
-      </div>
 
-      <!-- Messages Container -->
-      <div id="messagesContainer" class="messages-container hidden">
-        <div id="messages" class="messages-area">
-          <!-- Messages will appear here -->
+        <!-- Messages Container -->
+        <div id="messagesContainer" class="messages-container hidden">
+            <div id="messages" class="messages-area">
+                <!-- Messages will appear here -->
+            </div>
         </div>
-      </div>
     </div>
-  </div>
+</div>
 
-  <!-- Voice Listening Indicator -->
-  <div id="listeningIndicator" class="listening-indicator">
+<!-- Voice Listening Indicator -->
+<div id="listeningIndicator" class="listening-indicator">
     <div class="pulse-ring"></div>
-    <div class="text-xl font-semibold">Listening...</div>
-    <div class="text-sm opacity-80">Speak now. Click to stop.</div>
-  </div>
+    <div class="text-xl font-semibold">{{ t('listening', user_language) }}...</div>
+    <div class="text-sm opacity-80">{{ t('speak_now', user_language) }}. {{ t('click_stop', user_language) }}</div>
+</div>
 
-  <!-- Input Section -->
-  <div class="input-section">
+<!-- Input Section -->
+<div class="input-section">
     <div class="input-container">
-      <div class="flex gap-3 items-end">
-        <textarea 
-          id="chatInput" 
-          placeholder="Type or speak your question about farming..."
-          class="flex-1 border-0 focus:ring-0 focus:outline-none resize-none py-3 px-4 text-gray-700 placeholder-gray-500 text-base bg-transparent leading-relaxed"
-          rows="1"
-          style="min-height: 56px; max-height: 150px;"
-        ></textarea>
+        <div class="flex gap-3 items-end">
+            <textarea 
+                id="chatInput" 
+                placeholder="{{ t('input_placeholder', user_language) }}"
+                class="flex-1 border-0 focus:ring-0 focus:outline-none resize-none py-3 px-4 text-gray-700 placeholder-gray-500 text-base bg-transparent leading-relaxed"
+                rows="1"
+                style="min-height: 56px; max-height: 150px;"
+            ></textarea>
+            
+            <!-- Voice Input Button -->
+            <button 
+                id="voiceBtn" 
+                onclick="toggleVoiceInput()" 
+                class="voice-btn"
+                title="{{ t('voice_input', user_language) }}"
+            >
+                <i class="fas fa-microphone"></i>
+            </button>
+            
+            <!-- Send Button -->
+            <button 
+                id="sendBtn" 
+                onclick="sendMessage()" 
+                class="bg-green-600 text-white rounded-xl px-5 py-3 font-semibold hover:bg-green-700 transition-colors shadow-md flex items-center gap-2"
+            >
+                <i class="fas fa-paper-plane"></i>
+                <span class="hidden sm:inline">{{ t('send', user_language) }}</span>
+            </button>
+        </div>
         
-        <!-- Voice Input Button -->
-        <button 
-          id="voiceBtn" 
-          onclick="toggleVoiceInput()" 
-          class="voice-btn"
-          title="Click to speak"
-        >
-          <i class="fas fa-microphone"></i>
-        </button>
-        
-        <!-- Send Button -->
-        <button 
-          id="sendBtn" 
-          onclick="sendMessage()" 
-          class="bg-green-600 text-white rounded-xl px-5 py-3 font-semibold hover:bg-green-700 transition-colors shadow-md flex items-center gap-2"
-        >
-          <i class="fas fa-paper-plane"></i>
-          <span class="hidden sm:inline">Send</span>
-        </button>
-      </div>
-      
-      <div class="mt-3 flex justify-center gap-3">
-        <button onclick="suggestPrompt('weather')" class="text-xs text-green-600 hover:text-green-800 px-3 py-1.5 bg-green-50 rounded-full transition-colors border border-green-100">
-          <i class="fas fa-cloud-sun mr-1"></i>Weather
-        </button>
-        <button onclick="suggestPrompt('fertilizer')" class="text-xs text-green-600 hover:text-green-800 px-3 py-1.5 bg-green-50 rounded-full transition-colors border border-green-100">
-          <i class="fas fa-seedling mr-1"></i>Fertilizer
-        </button>
-        <button onclick="suggestPrompt('pest')" class="text-xs text-green-600 hover:text-green-800 px-3 py-1.5 bg-green-50 rounded-full transition-colors border border-green-100">
-          <i class="fas fa-bug mr-1"></i>Pest
-        </button>
-        <button onclick="suggestPrompt('irrigation')" class="text-xs text-green-600 hover:text-green-800 px-3 py-1.5 bg-green-50 rounded-full transition-colors border border-green-100">
-          <i class="fas fa-tint mr-1"></i>Water
-        </button>
-      </div>
+        <div class="mt-3 flex justify-center gap-3">
+            <button onclick="suggestPrompt('weather')" class="text-xs text-green-600 hover:text-green-800 px-3 py-1.5 bg-green-50 rounded-full transition-colors border border-green-100">
+                <i class="fas fa-cloud-sun mr-1"></i>{{ t('weather', user_language) }}
+            </button>
+            <button onclick="suggestPrompt('fertilizer')" class="text-xs text-green-600 hover:text-green-800 px-3 py-1.5 bg-green-50 rounded-full transition-colors border border-green-100">
+                <i class="fas fa-seedling mr-1"></i>{{ t('fertilizer', user_language) }}
+            </button>
+            <button onclick="suggestPrompt('pest')" class="text-xs text-green-600 hover:text-green-800 px-3 py-1.5 bg-green-50 rounded-full transition-colors border border-green-100">
+                <i class="fas fa-bug mr-1"></i>{{ t('pest', user_language) }}
+            </button>
+            <button onclick="suggestPrompt('irrigation')" class="text-xs text-green-600 hover:text-green-800 px-3 py-1.5 bg-green-50 rounded-full transition-colors border border-green-100">
+                <i class="fas fa-tint mr-1"></i>{{ t('water', user_language) }}
+            </button>
+        </div>
     </div>
-  </div>
+</div>
+{% endblock %}
 
-  <script>
-    // Voice Assistant Class
+{% block scripts %}
+<script>
+    // Global variables with translation support
+    window.translations = {
+        thinking: "{{ t('thinking', user_language) }}",
+        heard: "{{ t('heard', user_language) }}",
+        microphone_denied: "{{ t('microphone_denied', user_language) }}",
+        voice_not_supported: "{{ t('voice_not_supported', user_language) }}",
+        click_stop: "{{ t('click_stop', user_language) }}",
+        clear_chat_confirm: "{{ t('clear_chat_confirm', user_language) }}",
+        no_messages: "{{ t('no_messages', user_language) }}",
+        chat_exported: "{{ t('chat_exported', user_language) }}",
+        you: "{{ t('you', user_language) }}",
+        assistant: "{{ t('assistant', user_language) }}",
+        farm_assistant: "{{ t('assistant_name', user_language) }}"
+    };
+
+    // Voice Assistant Class - Fully Translated
     class VoiceAssistant {
-      constructor() {
-        this.speechSynthesis = window.speechSynthesis;
-        this.recognition = null;
-        this.isListening = false;
-        this.isSpeaking = false;
-        this.currentLanguage = 'en-IN';
-        this.supportedVoices = [];
-        this.voiceEnabled = true;
-        this.ttsEnabled = false; // Default OFF - user must enable manually
-        this.autoSendEnabled = false;
-        this.initSpeechRecognition();
-        this.loadVoiceSettings();
-        this.loadAvailableVoices();
-      }
-
-      initSpeechRecognition() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        
-        if (!SpeechRecognition) {
-          console.warn('Speech recognition not supported in this browser');
-          this.showBrowserCompatibilityWarning();
-          return;
+        constructor() {
+            this.speechSynthesis = window.speechSynthesis;
+            this.recognition = null;
+            this.isListening = false;
+            this.isSpeaking = false;
+            this.currentLanguage = 'en-IN';
+            this.supportedVoices = [];
+            this.voiceEnabled = true;
+            this.ttsEnabled = false;
+            this.autoSendEnabled = false;
+            this.initSpeechRecognition();
+            this.loadVoiceSettings();
+            this.loadAvailableVoices();
         }
 
-        this.recognition = new SpeechRecognition();
-        this.recognition.continuous = false;
-        this.recognition.interimResults = false;
-        this.recognition.lang = this.currentLanguage;
-        
-        this.recognition.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
-          console.log('Voice input:', transcript);
-          this.onSpeechResult(transcript);
-        };
-        
-        this.recognition.onerror = (event) => {
-          console.error('Speech recognition error:', event.error);
-          this.isListening = false;
-          this.updateListeningUI(false);
-          
-          if (event.error === 'not-allowed') {
-            this.showPermissionError();
-          }
-        };
-        
-        this.recognition.onend = () => {
-          this.isListening = false;
-          this.updateListeningUI(false);
-        };
-      }
+        initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                console.warn('Speech recognition not supported');
+                this.showBrowserCompatibilityWarning();
+                return;
+            }
 
-      loadAvailableVoices() {
-        const loadVoices = () => {
-          this.supportedVoices = this.speechSynthesis.getVoices();
-        };
-        
-        this.speechSynthesis.onvoiceschanged = loadVoices;
-        loadVoices();
-      }
-
-      loadVoiceSettings() {
-        this.voiceEnabled = localStorage.getItem('voiceEnabled') !== 'false';
-        this.ttsEnabled = localStorage.getItem('ttsEnabled') === 'true';
-        this.autoSendEnabled = localStorage.getItem('autoSendEnabled') === 'true';
-        
-        document.getElementById('voiceInputToggle').checked = this.voiceEnabled;
-        document.getElementById('ttsToggle').checked = this.ttsEnabled;
-        document.getElementById('autoSendToggle').checked = this.autoSendEnabled;
-      }
-
-      saveVoiceSettings() {
-        localStorage.setItem('voiceEnabled', this.voiceEnabled);
-        localStorage.setItem('ttsEnabled', this.ttsEnabled);
-        localStorage.setItem('autoSendEnabled', this.autoSendEnabled);
-      }
-
-      setLanguage(langCode) {
-        const languageMap = {
-          'en': 'en-IN',
-          'hi': 'hi-IN',
-          'te': 'te-IN',
-          'ta': 'ta-IN',
-          'mr': 'mr-IN',
-          'bn': 'bn-IN'
-        };
-        
-        this.currentLanguage = languageMap[langCode] || 'en-IN';
-        if (this.recognition) {
-          this.recognition.lang = this.currentLanguage;
+            this.recognition = new SpeechRecognition();
+            this.recognition.continuous = false;
+            this.recognition.interimResults = false;
+            this.recognition.lang = this.currentLanguage;
+            
+            this.recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                console.log('Voice input:', transcript);
+                this.onSpeechResult(transcript);
+            };
+            
+            this.recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                this.isListening = false;
+                this.updateListeningUI(false);
+                
+                if (event.error === 'not-allowed') {
+                    this.showPermissionError();
+                }
+            };
+            
+            this.recognition.onend = () => {
+                this.isListening = false;
+                this.updateListeningUI(false);
+            };
         }
-      }
 
-      startListening() {
-        if (!this.recognition || this.isListening || !this.voiceEnabled) return;
-        
-        try {
-          this.recognition.start();
-          this.isListening = true;
-          this.updateListeningUI(true);
-        } catch (error) {
-          console.error('Failed to start recognition:', error);
-          this.showPermissionError();
+        loadAvailableVoices() {
+            const loadVoices = () => {
+                this.supportedVoices = this.speechSynthesis.getVoices();
+            };
+            
+            this.speechSynthesis.onvoiceschanged = loadVoices;
+            loadVoices();
         }
-      }
 
-      stopListening() {
-        if (this.recognition && this.isListening) {
-          this.recognition.stop();
-          this.isListening = false;
-          this.updateListeningUI(false);
+        loadVoiceSettings() {
+            this.voiceEnabled = localStorage.getItem('voiceEnabled') !== 'false';
+            this.ttsEnabled = localStorage.getItem('ttsEnabled') === 'true';
+            this.autoSendEnabled = localStorage.getItem('autoSendEnabled') === 'true';
+            
+            document.getElementById('voiceInputToggle').checked = this.voiceEnabled;
+            document.getElementById('ttsToggle').checked = this.ttsEnabled;
+            document.getElementById('autoSendToggle').checked = this.autoSendEnabled;
         }
-      }
 
-      toggleListening() {
-        if (this.isListening) {
-          this.stopListening();
-        } else {
-          this.startListening();
+        saveVoiceSettings() {
+            localStorage.setItem('voiceEnabled', this.voiceEnabled);
+            localStorage.setItem('ttsEnabled', this.ttsEnabled);
+            localStorage.setItem('autoSendEnabled', this.autoSendEnabled);
         }
-      }
 
-      onSpeechResult(transcript) {
-        if (!transcript || transcript.trim().length === 0) return;
-        
-        const chatInput = document.getElementById('chatInput');
-        if (chatInput) {
-          chatInput.value = transcript;
-          chatInput.style.height = 'auto';
-          chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
-          chatInput.focus();
-          updateSendButton();
-          
-          if (this.autoSendEnabled && transcript.trim().length > 0 && transcript.trim().length < 50) {
+        setLanguage(langCode) {
+            const languageMap = {
+                'en': 'en-IN',
+                'hi': 'hi-IN',
+                'te': 'te-IN',
+                'ta': 'ta-IN',
+                'mr': 'mr-IN',
+                'bn': 'bn-IN'
+            };
+            
+            this.currentLanguage = languageMap[langCode] || 'en-IN';
+            if (this.recognition) {
+                this.recognition.lang = this.currentLanguage;
+            }
+            console.log('Voice Assistant language set to:', this.currentLanguage);
+        }
+
+        startListening() {
+            if (!this.recognition || this.isListening || !this.voiceEnabled) return;
+            
+            try {
+                this.recognition.start();
+                this.isListening = true;
+                this.updateListeningUI(true);
+            } catch (error) {
+                console.error('Failed to start recognition:', error);
+                this.showPermissionError();
+            }
+        }
+
+        stopListening() {
+            if (this.recognition && this.isListening) {
+                this.recognition.stop();
+                this.isListening = false;
+                this.updateListeningUI(false);
+            }
+        }
+
+        toggleListening() {
+            if (this.isListening) {
+                this.stopListening();
+            } else {
+                this.startListening();
+            }
+        }
+
+        onSpeechResult(transcript) {
+            if (!transcript || transcript.trim().length === 0) return;
+            
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) {
+                chatInput.value = transcript;
+                chatInput.style.height = 'auto';
+                chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
+                chatInput.focus();
+                updateSendButton();
+                
+                if (this.autoSendEnabled && transcript.trim().length > 0 && transcript.trim().length < 50) {
+                    setTimeout(() => {
+                        sendMessage();
+                    }, 800);
+                }
+            }
+            
+            this.showTranscriptFeedback(transcript);
+        }
+
+        updateListeningUI(isListening) {
+            const micBtn = document.getElementById('voiceBtn');
+            const indicator = document.getElementById('listeningIndicator');
+            
+            if (micBtn) {
+                if (isListening) {
+                    micBtn.classList.add('listening');
+                    micBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                    micBtn.title = window.translations.click_stop;
+                } else {
+                    micBtn.classList.remove('listening');
+                    micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                    micBtn.title = "{{ t('voice_input', user_language) }}";
+                }
+            }
+            
+            if (indicator) {
+                if (isListening) {
+                    indicator.classList.add('active');
+                    indicator.onclick = () => this.stopListening();
+                } else {
+                    indicator.classList.remove('active');
+                    indicator.onclick = null;
+                }
+            }
+        }
+
+        showTranscriptFeedback(transcript) {
+            const feedback = document.createElement('div');
+            feedback.className = 'transcript-feedback';
+            feedback.innerHTML = `
+                <div class="transcript-text">
+                    <i class="fas fa-check-circle"></i>
+                    <span>${window.translations.heard}: "<strong>${transcript}</strong>"</span>
+                </div>
+            `;
+            
+            const chatContainer = document.querySelector('.main-content') || document.body;
+            chatContainer.appendChild(feedback);
+            
             setTimeout(() => {
-              sendMessage();
-            }, 800);
-          }
+                feedback.classList.add('fade-out');
+                setTimeout(() => feedback.remove(), 500);
+            }, 3000);
         }
-        
-        this.showTranscriptFeedback(transcript);
-      }
 
-      updateListeningUI(isListening) {
-        const micBtn = document.getElementById('voiceBtn');
-        const indicator = document.getElementById('listeningIndicator');
-        
-        if (micBtn) {
-          if (isListening) {
-            micBtn.classList.add('listening');
-            micBtn.innerHTML = '<i class="fas fa-stop"></i>';
-            micBtn.title = 'Click to stop listening';
-          } else {
-            micBtn.classList.remove('listening');
-            micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-            micBtn.title = 'Click to speak';
-          }
+        speakText(text, lang = null) {
+            if (!this.speechSynthesis || !text || this.isSpeaking || !this.ttsEnabled) return;
+            
+            this.stopSpeaking();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            if (lang) {
+                utterance.lang = lang;
+            } else {
+                utterance.lang = this.currentLanguage;
+            }
+            
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            const targetLang = lang || this.currentLanguage;
+            const langPrefix = targetLang.split('-')[0];
+            const preferredVoice = this.supportedVoices.find(v => v.lang.startsWith(langPrefix));
+            
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+            }
+            
+            utterance.onstart = () => {
+                this.isSpeaking = true;
+                this.updateSpeakingUI(true);
+            };
+            
+            utterance.onend = () => {
+                this.isSpeaking = false;
+                this.updateSpeakingUI(false);
+            };
+            
+            utterance.onerror = (event) => {
+                console.error('Speech synthesis error:', event);
+                this.isSpeaking = false;
+                this.updateSpeakingUI(false);
+            };
+            
+            this.speechSynthesis.speak(utterance);
         }
-        
-        if (indicator) {
-          if (isListening) {
-            indicator.classList.add('active');
-            indicator.onclick = () => this.stopListening();
-          } else {
-            indicator.classList.remove('active');
-            indicator.onclick = null;
-          }
-        }
-      }
 
-      showTranscriptFeedback(transcript) {
-        const feedback = document.createElement('div');
-        feedback.className = 'transcript-feedback';
-        feedback.innerHTML = `
-          <div class="transcript-text">
-            <i class="fas fa-check-circle"></i>
-            <span>Heard: "<strong>${transcript}</strong>"</span>
-          </div>
-        `;
-        
-        const chatContainer = document.querySelector('.main-content') || document.body;
-        chatContainer.appendChild(feedback);
-        
-        setTimeout(() => {
-          feedback.classList.add('fade-out');
-          setTimeout(() => feedback.remove(), 500);
-        }, 3000);
-      }
-
-      speakText(text, lang = null) {
-        if (!this.speechSynthesis || !text || this.isSpeaking || !this.ttsEnabled) return;
-        
-        this.stopSpeaking();
-        
-        const utterance = new SpeechSynthesisUtterance(text);
-        
-        if (lang) {
-          utterance.lang = lang;
-        } else {
-          utterance.lang = this.currentLanguage;
+        stopSpeaking() {
+            if (this.speechSynthesis && this.isSpeaking) {
+                this.speechSynthesis.cancel();
+                this.isSpeaking = false;
+                this.updateSpeakingUI(false);
+            }
         }
-        
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
-        utterance.volume = 1.0;
-        
-        const targetLang = lang || this.currentLanguage;
-        const langPrefix = targetLang.split('-')[0];
-        const preferredVoice = this.supportedVoices.find(v => v.lang.startsWith(langPrefix));
-        
-        if (preferredVoice) {
-          utterance.voice = preferredVoice;
-        }
-        
-        utterance.onstart = () => {
-          this.isSpeaking = true;
-          this.updateSpeakingUI(true);
-        };
-        
-        utterance.onend = () => {
-          this.isSpeaking = false;
-          this.updateSpeakingUI(false);
-        };
-        
-        utterance.onerror = (event) => {
-          console.error('Speech synthesis error:', event);
-          this.isSpeaking = false;
-          this.updateSpeakingUI(false);
-        };
-        
-        this.speechSynthesis.speak(utterance);
-      }
 
-      stopSpeaking() {
-        if (this.speechSynthesis && this.isSpeaking) {
-          this.speechSynthesis.cancel();
-          this.isSpeaking = false;
-          this.updateSpeakingUI(false);
+        updateSpeakingUI(isSpeaking, messageElement = null) {
+            document.querySelectorAll('.tts-btn').forEach(btn => {
+                btn.classList.remove('speaking');
+                btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                btn.title = "{{ t('listen', user_language) }}";
+            });
+            
+            if (isSpeaking && messageElement) {
+                const ttsBtn = messageElement.querySelector('.tts-btn');
+                if (ttsBtn) {
+                    ttsBtn.classList.add('speaking');
+                    ttsBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                    ttsBtn.title = "{{ t('stop', user_language) }}";
+                }
+            }
         }
-      }
 
-      updateSpeakingUI(isSpeaking, messageElement = null) {
-        document.querySelectorAll('.tts-btn').forEach(btn => {
-          btn.classList.remove('speaking');
-          btn.innerHTML = '<i class="fas fa-volume-up"></i>';
-          btn.title = 'Listen to this response';
-        });
-        
-        if (isSpeaking && messageElement) {
-          const ttsBtn = messageElement.querySelector('.tts-btn');
-          if (ttsBtn) {
-            ttsBtn.classList.add('speaking');
-            ttsBtn.innerHTML = '<i class="fas fa-stop"></i>';
-            ttsBtn.title = 'Stop speaking';
-          }
+        showBrowserCompatibilityWarning() {
+            console.warn('Voice not supported');
+            const voiceBtn = document.getElementById('voiceBtn');
+            if (voiceBtn) {
+                voiceBtn.classList.add('disabled');
+                voiceBtn.title = window.translations.voice_not_supported;
+                voiceBtn.onclick = null;
+            }
         }
-      }
 
-      showBrowserCompatibilityWarning() {
-        console.warn('Voice features not supported in this browser');
-        const voiceBtn = document.getElementById('voiceBtn');
-        if (voiceBtn) {
-          voiceBtn.classList.add('disabled');
-          voiceBtn.title = 'Voice not supported in your browser';
-          voiceBtn.onclick = null;
+        showPermissionError() {
+            const feedback = document.createElement('div');
+            feedback.className = 'transcript-feedback';
+            feedback.style.background = 'rgba(220, 38, 38, 0.95)';
+            feedback.innerHTML = `
+                <div class="transcript-text">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>${window.translations.microphone_denied}</span>
+                </div>
+            `;
+            
+            const chatContainer = document.querySelector('.main-content') || document.body;
+            chatContainer.appendChild(feedback);
+            
+            setTimeout(() => {
+                feedback.classList.add('fade-out');
+                setTimeout(() => feedback.remove(), 500);
+            }, 5000);
         }
-      }
-
-      showPermissionError() {
-        const feedback = document.createElement('div');
-        feedback.className = 'transcript-feedback';
-        feedback.style.background = 'rgba(220, 38, 38, 0.95)';
-        feedback.innerHTML = `
-          <div class="transcript-text">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span>Microphone permission denied. Please allow microphone access in your browser settings.</span>
-          </div>
-        `;
-        
-        const chatContainer = document.querySelector('.main-content') || document.body;
-        chatContainer.appendChild(feedback);
-        
-        setTimeout(() => {
-          feedback.classList.add('fade-out');
-          setTimeout(() => feedback.remove(), 500);
-        }, 5000);
-      }
     }
 
-    // ORIGINAL CHATBOT CODE WITH VOICE INTEGRATION
+    // Chat Application Variables
     let voiceAssistant = null;
     let currentSessionId = null;
     let isFirstMessage = true;
@@ -989,450 +1012,450 @@
     const voiceBtn = document.getElementById('voiceBtn');
     const voiceSettingsPanel = document.getElementById('voiceSettingsPanel');
 
+    // Initialize
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('🚀 Farm Assistant initialized');
-      
-      currentSessionId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      console.log('Session ID:', currentSessionId);
-      
-      initializeVoiceAssistant();
-      setupEventListeners();
-      initializeInput();
-      
-      const presetQuery = sessionStorage.getItem('preset_chat_query');
-      if (presetQuery) {
-        setTimeout(() => {
-          startChatWithMessage(presetQuery);
-          sessionStorage.removeItem('preset_chat_query');
-        }, 500);
-      }
+        console.log('🚀 Farm Assistant initialized');
+        
+        currentSessionId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        console.log('Session ID:', currentSessionId);
+        
+        initializeVoiceAssistant();
+        setupEventListeners();
+        initializeInput();
+        
+        const presetQuery = sessionStorage.getItem('preset_chat_query');
+        if (presetQuery) {
+            setTimeout(() => {
+                startChatWithMessage(presetQuery);
+                sessionStorage.removeItem('preset_chat_query');
+            }, 500);
+        }
     });
 
     function initializeVoiceAssistant() {
-      voiceAssistant = new VoiceAssistant();
-      
-      if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        voiceBtn.classList.add('disabled');
-        voiceBtn.title = 'Voice not supported in your browser';
-      }
-      
-      const userLanguage = localStorage.getItem('user_language') || 'en';
-      voiceAssistant.setLanguage(userLanguage);
+        voiceAssistant = new VoiceAssistant();
+        
+        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+            voiceBtn.classList.add('disabled');
+            voiceBtn.title = window.translations.voice_not_supported;
+        }
+        
+        const pageLanguage = document.documentElement.lang || 'en';
+        voiceAssistant.setLanguage(pageLanguage);
     }
 
     function setupEventListeners() {
-      chatInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          sendMessage();
-        }
-      });
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
 
-      chatInput.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 150) + 'px';
-        updateSendButton();
-      });
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+            updateSendButton();
+        });
 
-      document.getElementById('voiceInputToggle').addEventListener('change', function() {
-        voiceAssistant.voiceEnabled = this.checked;
-        voiceAssistant.saveVoiceSettings();
-      });
-      
-      document.getElementById('ttsToggle').addEventListener('change', function() {
-        voiceAssistant.ttsEnabled = this.checked;
-        voiceAssistant.saveVoiceSettings();
-      });
-      
-      document.getElementById('autoSendToggle').addEventListener('change', function() {
-        voiceAssistant.autoSendEnabled = this.checked;
-        voiceAssistant.saveVoiceSettings();
-      });
+        document.getElementById('voiceInputToggle').addEventListener('change', function() {
+            voiceAssistant.voiceEnabled = this.checked;
+            voiceAssistant.saveVoiceSettings();
+        });
+        
+        document.getElementById('ttsToggle').addEventListener('change', function() {
+            voiceAssistant.ttsEnabled = this.checked;
+            voiceAssistant.saveVoiceSettings();
+        });
+        
+        document.getElementById('autoSendToggle').addEventListener('change', function() {
+            voiceAssistant.autoSendEnabled = this.checked;
+            voiceAssistant.saveVoiceSettings();
+        });
 
-      setTimeout(() => {
-        chatInput.focus();
-      }, 100);
+        setTimeout(() => {
+            chatInput.focus();
+        }, 100);
     }
 
     function toggleVoiceInput() {
-      if (voiceAssistant && voiceAssistant.voiceEnabled) {
-        voiceAssistant.toggleListening();
-      }
+        if (voiceAssistant && voiceAssistant.voiceEnabled) {
+            voiceAssistant.toggleListening();
+        }
     }
 
     function toggleVoiceSettings() {
-      voiceSettingsPanel.classList.toggle('hidden');
+        voiceSettingsPanel.classList.toggle('hidden');
     }
 
     function initializeInput() {
-      chatInput.style.height = '56px';
-      chatInput.style.minHeight = '56px';
-      updateSendButton();
+        chatInput.style.height = '56px';
+        chatInput.style.minHeight = '56px';
+        updateSendButton();
     }
 
     function updateSendButton() {
-      const hasText = chatInput.value.trim().length > 0;
-      sendBtn.disabled = !hasText || isProcessing;
-      sendBtn.style.opacity = hasText && !isProcessing ? '1' : '0.5';
-      sendBtn.style.cursor = hasText && !isProcessing ? 'pointer' : 'not-allowed';
+        const hasText = chatInput.value.trim().length > 0;
+        sendBtn.disabled = !hasText || isProcessing;
+        sendBtn.style.opacity = hasText && !isProcessing ? '1' : '0.5';
+        sendBtn.style.cursor = hasText && !isProcessing ? 'pointer' : 'not-allowed';
     }
 
     function startQuickChat(prompt) {
-      console.log('Quick chat:', prompt.substring(0, 50) + '...');
-      startChatWithMessage(prompt);
+        console.log('Quick chat:', prompt.substring(0, 50) + '...');
+        startChatWithMessage(prompt);
     }
 
     function startChatWithMessage(message) {
-      if (!message || !message.trim()) return;
-      
-      if (isFirstMessage) {
-        welcomeCenter.classList.add('hidden');
-        messagesContainer.classList.remove('hidden');
-        isFirstMessage = false;
-      }
-      
-      addMessageToUI(message, 'user');
-      processAIResponse(message);
+        if (!message || !message.trim()) return;
+        
+        if (isFirstMessage) {
+            welcomeCenter.classList.add('hidden');
+            messagesContainer.classList.remove('hidden');
+            isFirstMessage = false;
+        }
+        
+        addMessageToUI(message, 'user');
+        processAIResponse(message);
     }
 
     async function sendMessage() {
-      const message = chatInput.value.trim();
-      
-      if (!message || isProcessing) return;
-      
-      startChatWithMessage(message);
-      
-      chatInput.value = '';
-      initializeInput();
-      chatInput.focus();
-    }
-
-    function addMessageToUI(content, role) {
-      const messageRow = document.createElement('div');
-      messageRow.className = `message-row ${role}`;
-      
-      const messageBubble = document.createElement('div');
-      messageBubble.className = `message-bubble ${role === 'user' ? 'user-message' : 'bot-message'}`;
-      
-      const avatar = role === 'user' ? '👤' : '🤖';
-      const name = role === 'user' ? 'You' : 'Farm Assistant';
-      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
-      let messageHTML = `
-        <div class="message-header">
-          <div class="avatar ${role}">${avatar}</div>
-          <span class="text-sm font-semibold ${role === 'user' ? 'text-green-800' : 'text-gray-700'}">${name}</span>
-        </div>
-        <div class="message-content">${formatMessageContent(content)}</div>
-        <div class="timestamp">${time}</div>
-      `;
-      
-      messageBubble.innerHTML = messageHTML;
-      messageRow.appendChild(messageBubble);
-      
-      if (role === 'assistant') {
-        const ttsBtn = document.createElement('button');
-        ttsBtn.className = 'tts-btn';
-        ttsBtn.title = 'Listen to this response';
-        ttsBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+        const message = chatInput.value.trim();
         
-        ttsBtn.onclick = (e) => {
-          e.stopPropagation();
-          
-          if (voiceAssistant && voiceAssistant.isSpeaking) {
-            voiceAssistant.stopSpeaking();
-            ttsBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
-            ttsBtn.title = 'Listen to this response';
-            ttsBtn.classList.remove('speaking');
-          } else {
-            speakMessage(content, messageRow);
-            ttsBtn.innerHTML = '<i class="fas fa-stop"></i>';
-            ttsBtn.title = 'Stop speaking';
-          }
-        };
+        if (!message || isProcessing) return;
         
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'message-actions';
-        actionsDiv.appendChild(ttsBtn);
+        startChatWithMessage(message);
         
-        messageBubble.appendChild(actionsDiv);
-      }
-      
-      messagesArea.appendChild(messageRow);
-      
-      messages.push({ 
-        content, 
-        role, 
-        timestamp: new Date().toISOString(),
-        session: currentSessionId 
-      });
-      
-      // NO AUTO-SPEAK - User must click speaker icon manually
-      
-      setTimeout(() => {
-        messagesArea.scrollTop = messagesArea.scrollHeight;
-      }, 50);
-    }
-
-    function speakMessage(text, messageElement = null) {
-      if (voiceAssistant) {
-        voiceAssistant.speakText(text);
-        if (messageElement) {
-          voiceAssistant.updateSpeakingUI(true, messageElement);
-        }
-      }
-    }
-
-    function formatMessageContent(content) {
-      return content
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/\n/g, '<br>')
-        .replace(/^- (.*?)(?=\n|$)/gm, '• $1<br>')
-        .replace(/(\d+)\. (.*?)(?=\n|$)/gm, '$1. $2<br>');
-    }
-
-    function showTypingIndicator() {
-      const messageRow = document.createElement('div');
-      messageRow.className = 'message-row assistant';
-      messageRow.id = 'typingIndicator';
-      
-      const messageBubble = document.createElement('div');
-      messageBubble.className = 'message-bubble bot-message';
-      
-      messageBubble.innerHTML = `
-        <div class="message-header">
-          <div class="avatar bot">🤖</div>
-          <span class="text-sm font-semibold text-gray-700">Farm Assistant</span>
-        </div>
-        <div class="typing-indicator">
-          <span class="text-gray-600 mr-2">Thinking</span>
-          <div class="typing-dot"></div>
-          <div class="typing-dot" style="animation-delay: 0.2s"></div>
-          <div class="typing-dot" style="animation-delay: 0.4s"></div>
-        </div>
-      `;
-      
-      messageRow.appendChild(messageBubble);
-      messagesArea.appendChild(messageRow);
-      messagesArea.scrollTop = messagesArea.scrollHeight;
-    }
-
-    function hideTypingIndicator() {
-      const typingIndicator = document.getElementById('typingIndicator');
-      if (typingIndicator) {
-        typingIndicator.remove();
-      }
-    }
-
-    async function processAIResponse(message) {
-      isProcessing = true;
-      updateSendButton();
-      
-      showTypingIndicator();
-      
-      try {
-        console.log('Processing:', message.substring(0, 50) + '...');
-        
-        const userContext = getUserContext();
-        const enhancedMessage = enhancePrompt(message);
-        
-        const response = await fetch('/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify({ 
-            message: enhancedMessage,
-            session_id: currentSessionId,
-            user_context: userContext
-          })
-        });
-
-        hideTypingIndicator();
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            console.log('✅ Received AI response');
-            const completeResponse = ensureCompleteResponse(data.reply, message);
-            addMessageToUI(completeResponse, 'assistant');
-          } else {
-            console.error('❌ API error:', data.message);
-            addMessageToUI(getDetailedFallbackResponse(message), 'assistant');
-          }
-        } else {
-          console.error('❌ HTTP error:', response.status);
-          addMessageToUI(getDetailedFallbackResponse(message), 'assistant');
-        }
-        
-      } catch (error) {
-        hideTypingIndicator();
-        console.error('❌ Network error:', error);
-        addMessageToUI(getDetailedFallbackResponse(message), 'assistant');
-      } finally {
-        isProcessing = false;
-        updateSendButton();
-      }
-    }
-
-    function enhancePrompt(message) {
-      const lower = message.toLowerCase();
-      
-      if (lower.includes('crop') && lower.includes('season')) {
-        return message + " Please include sowing time, duration, yield expectations, and suitable varieties.";
-      }
-      else if (lower.includes('fertilizer')) {
-        return message + " Please provide NPK ratio, quantity per acre, application schedule, and recommended brands.";
-      }
-      else if (lower.includes('pest') || lower.includes('disease')) {
-        return message + " Include both preventive measures and treatment methods, with organic options if available.";
-      }
-      else if (lower.includes('irrigation') || lower.includes('water')) {
-        return message + " Provide schedule, water requirements per acre, and efficiency tips.";
-      }
-      else if (lower.includes('weather') || lower.includes('rain')) {
-        return message + " Include impact on farming activities and precautions to take.";
-      }
-      else if (lower.includes('soil') || lower.includes('land')) {
-        return message + " Include soil preparation methods and improvement techniques.";
-      }
-      
-      return message + " Please provide detailed, practical information suitable for farmers.";
-    }
-
-    function ensureCompleteResponse(response, originalQuery) {
-      const lowerQuery = originalQuery.toLowerCase();
-      const lowerResponse = response.toLowerCase();
-      
-      if (response.length < 100 && !lowerResponse.includes('?') && !lowerResponse.includes('.')) {
-        return response + "\n\nFor more detailed information, please visit our specialized pages or ask a more specific question.";
-      }
-      
-      if (lowerQuery.includes('crop') && !lowerResponse.includes('yield') && !lowerResponse.includes('harvest')) {
-        return response + "\n\n🌾 **Additional Tips:**\n• Monitor soil moisture regularly\n• Check for pest infestation weekly\n• Maintain proper plant spacing\n• Test soil nutrients before sowing";
-      }
-      
-      if (lowerQuery.includes('fertilizer') && !lowerResponse.includes('apply') && !lowerResponse.includes('schedule')) {
-        return response + "\n\n🌱 **Application Tips:**\n• Apply fertilizers in the evening\n• Water immediately after application\n• Avoid application before heavy rain\n• Use soil testing for precise needs";
-      }
-      
-      return response;
-    }
-
-    function getUserContext() {
-      try {
-        const location = localStorage.getItem('user_location');
-        const crop = localStorage.getItem('primary_crop');
-        const soil = localStorage.getItem('soil_type');
-        
-        if (location || crop || soil) {
-          return {
-            location: location || 'Unknown location',
-            crop: crop || 'General farming',
-            soil_type: soil || 'Various soil types',
-            irrigation: localStorage.getItem('irrigation_type') || 'Not specified'
-          };
-        }
-        return null;
-      } catch (error) {
-        return null;
-      }
-    }
-
-    function getDetailedFallbackResponse(message) {
-      const lower = message.toLowerCase();
-      
-      if (lower.includes('weather')) {
-        return `**Weather Information:**\n\n• Check the Weather page for real-time agricultural weather forecasts\n• Monitor rainfall patterns for irrigation planning\n• Protect crops from extreme temperatures with shade/cover\n• Ideal farming temperature: 20-30°C\n• Rain requirement: 500-1000mm annually for most crops\n\n**Action:** Visit Weather page for detailed forecasts and farming advisories.`;
-      } 
-      else if (lower.includes('fertilizer') || lower.includes('npk')) {
-        return `**Fertilizer Guidance:**\n\n• General NPK ratio for most crops: 4:2:1 (N:P:K)\n• Apply 100-150 kg/acre for cereal crops\n• Split application: 50% basal, 25% at 30 days, 25% at 60 days\n• Organic alternatives: Vermicompost (2-3 tonnes/acre), Farmyard manure (5-10 tonnes/acre)\n• Always conduct soil test before application\n\n**Recommendation:** Use the Fertilizer page for personalized recommendations based on your crop and soil.`;
-      }
-      else if (lower.includes('pest') || lower.includes('insect')) {
-        return `**Pest Control Methods:**\n\n**Preventive Measures:**\n• Crop rotation every season\n• Maintain field sanitation\n• Use resistant varieties\n• Proper spacing for air circulation\n\n**Organic Treatments:**\n• Neem oil spray: 5ml per liter water (weekly)\n• Garlic-chilli spray for chewing insects\n• Yellow sticky traps for flying pests\n• Biological control: Ladybugs for aphids\n\n**Chemical (if severe):**\n• Imidacloprid for sucking pests\n• Chlorpyriphos for soil insects\n• Always follow recommended dosage`;
-      }
-      else if (lower.includes('irrigation') || lower.includes('water')) {
-        return `**Irrigation Management:**\n\n**Methods (Most efficient first):**\n1. Drip irrigation - Saves 30-50% water\n2. Sprinkler irrigation - Good for light soils\n3. Furrow irrigation - Traditional, less efficient\n\n**Water Requirements:**\n• Rice: 1200-1500mm (standing water)\n• Wheat: 450-650mm (4-6 irrigations)\n• Vegetables: 500-800mm (frequent light irrigation)\n\n**Best Practices:**\n• Irrigate early morning (5-8 AM)\n• Monitor soil moisture at 15cm depth\n• Mulch to reduce evaporation\n• Use rainwater harvesting`;
-      }
-      else if (lower.includes('crop') && lower.includes('season')) {
-        return `**Seasonal Crop Calendar:**\n\n**KHARIF (June-September):**\n• Rice: June-July sowing, Oct-Nov harvest\n• Maize: June-July sowing, Sep-Oct harvest\n• Cotton: May-June sowing, Dec-Jan harvest\n• Soybean: June-July sowing, Sep-Oct harvest\n\n**RABI (October-March):**\n• Wheat: Nov-Dec sowing, Mar-Apr harvest\n• Chickpea: Oct-Nov sowing, Feb-Mar harvest\n• Mustard: Oct-Nov sowing, Feb-Mar harvest\n• Barley: Oct-Nov sowing, Mar-Apr harvest\n\n**Yield Expectations:**\n• Rice: 25-30 quintals/acre\n• Wheat: 20-25 quintals/acre\n• Vegetables: 80-120 quintals/acre`;
-      }
-      else {
-        return `I can help with detailed farming information about:\n\n🌾 **Crop Management:** Selection, sowing, harvesting\n🌱 **Fertilizers:** NPK ratios, organic options, application\n🐛 **Pest Control:** Prevention, organic treatments\n💧 **Irrigation:** Methods, scheduling, water conservation\n🌤️ **Weather:** Impact on farming, precautions\n💰 **Economics:** Costs, market prices, profitability\n\n**For specific advice:** Please ask detailed questions or visit our specialized pages for Weather, Fertilizer, and Market information.`;
-      }
-    }
-
-    function suggestPrompt(type) {
-      const prompts = {
-        weather: "What's the weather forecast for farming this week? Include rainfall predictions and temperature ranges.",
-        fertilizer: "What NPK fertilizer should I use for vegetable crops? Include quantity per acre and application timing.",
-        pest: "How to control common pests in tomato crops? List organic and chemical options.",
-        irrigation: "What's the best irrigation schedule for wheat crop? Include water requirements per acre."
-      };
-      
-      if (prompts[type]) {
-        chatInput.value = prompts[type];
-        chatInput.style.height = 'auto';
-        chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
-        updateSendButton();
-        chatInput.focus();
-      }
-    }
-
-    function clearChat() {
-      if (messages.length === 0 && isFirstMessage) {
-        return;
-      }
-      
-      if (confirm('Clear all messages in this chat?')) {
-        messages = [];
-        messagesArea.innerHTML = '';
-        welcomeCenter.classList.remove('hidden');
-        messagesContainer.classList.add('hidden');
-        isFirstMessage = true;
         chatInput.value = '';
         initializeInput();
         chatInput.focus();
+    }
+
+    function addMessageToUI(content, role) {
+        const messageRow = document.createElement('div');
+        messageRow.className = `message-row ${role}`;
         
-        if (voiceAssistant) {
-          voiceAssistant.stopSpeaking();
+        const messageBubble = document.createElement('div');
+        messageBubble.className = `message-bubble ${role === 'user' ? 'user-message' : 'bot-message'}`;
+        
+        const avatar = role === 'user' ? '👤' : '🤖';
+        const name = role === 'user' ? window.translations.you : window.translations.assistant;
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        let messageHTML = `
+            <div class="message-header">
+                <div class="avatar ${role}">${avatar}</div>
+                <span class="text-sm font-semibold ${role === 'user' ? 'text-green-800' : 'text-gray-700'}">${name}</span>
+            </div>
+            <div class="message-content">${formatMessageContent(content)}</div>
+            <div class="timestamp">${time}</div>
+        `;
+        
+        messageBubble.innerHTML = messageHTML;
+        messageRow.appendChild(messageBubble);
+        
+        if (role === 'assistant') {
+            const ttsBtn = document.createElement('button');
+            ttsBtn.className = 'tts-btn';
+            ttsBtn.title = "{{ t('listen', user_language) }}";
+            ttsBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            
+            ttsBtn.onclick = (e) => {
+                e.stopPropagation();
+                
+                if (voiceAssistant && voiceAssistant.isSpeaking) {
+                    voiceAssistant.stopSpeaking();
+                    ttsBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                    ttsBtn.title = "{{ t('listen', user_language) }}";
+                    ttsBtn.classList.remove('speaking');
+                } else {
+                    speakMessage(content, messageRow);
+                    ttsBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                    ttsBtn.title = "{{ t('stop', user_language) }}";
+                }
+            };
+            
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'message-actions';
+            actionsDiv.appendChild(ttsBtn);
+            
+            messageBubble.appendChild(actionsDiv);
         }
         
-        currentSessionId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        console.log('🆕 New session:', currentSessionId);
-      }
+        messagesArea.appendChild(messageRow);
+        
+        messages.push({ 
+            content, 
+            role, 
+            timestamp: new Date().toISOString(),
+            session: currentSessionId 
+        });
+        
+        setTimeout(() => {
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }, 50);
+    }
+
+    function speakMessage(text, messageElement = null) {
+        if (voiceAssistant) {
+            voiceAssistant.speakText(text);
+            if (messageElement) {
+                voiceAssistant.updateSpeakingUI(true, messageElement);
+            }
+        }
+    }
+
+    function formatMessageContent(content) {
+        return content
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/\n/g, '<br>')
+            .replace(/^- (.*?)(?=\n|$)/gm, '• $1<br>')
+            .replace(/(\d+)\. (.*?)(?=\n|$)/gm, '$1. $2<br>');
+    }
+
+    function showTypingIndicator() {
+        const messageRow = document.createElement('div');
+        messageRow.className = 'message-row assistant';
+        messageRow.id = 'typingIndicator';
+        
+        const messageBubble = document.createElement('div');
+        messageBubble.className = 'message-bubble bot-message';
+        
+        messageBubble.innerHTML = `
+            <div class="message-header">
+                <div class="avatar bot">🤖</div>
+                <span class="text-sm font-semibold text-gray-700">${window.translations.farm_assistant}</span>
+            </div>
+            <div class="typing-indicator">
+                <span class="text-gray-600 mr-2">${window.translations.thinking}</span>
+                <div class="typing-dot"></div>
+                <div class="typing-dot" style="animation-delay: 0.2s"></div>
+                <div class="typing-dot" style="animation-delay: 0.4s"></div>
+            </div>
+        `;
+        
+        messageRow.appendChild(messageBubble);
+        messagesArea.appendChild(messageRow);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+
+    async function processAIResponse(message) {
+        isProcessing = true;
+        updateSendButton();
+        
+        showTypingIndicator();
+        
+        try {
+            console.log('Processing:', message.substring(0, 50) + '...');
+            
+            const userContext = getUserContext();
+            const enhancedMessage = enhancePrompt(message);
+            
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ 
+                    message: enhancedMessage,
+                    session_id: currentSessionId,
+                    user_context: userContext
+                })
+            });
+
+            hideTypingIndicator();
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    console.log('✅ Received AI response');
+                    const completeResponse = ensureCompleteResponse(data.reply, message);
+                    addMessageToUI(completeResponse, 'assistant');
+                } else {
+                    console.error('❌ API error:', data.message);
+                    addMessageToUI(getDetailedFallbackResponse(message), 'assistant');
+                }
+            } else {
+                console.error('❌ HTTP error:', response.status);
+                addMessageToUI(getDetailedFallbackResponse(message), 'assistant');
+            }
+            
+        } catch (error) {
+            hideTypingIndicator();
+            console.error('❌ Network error:', error);
+            addMessageToUI(getDetailedFallbackResponse(message), 'assistant');
+        } finally {
+            isProcessing = false;
+            updateSendButton();
+        }
+    }
+
+    function enhancePrompt(message) {
+        const lower = message.toLowerCase();
+        
+        if (lower.includes('crop') && lower.includes('season')) {
+            return message + " Please include sowing time, duration, yield expectations, and suitable varieties.";
+        }
+        else if (lower.includes('fertilizer')) {
+            return message + " Please provide NPK ratio, quantity per acre, application schedule, and recommended brands.";
+        }
+        else if (lower.includes('pest') || lower.includes('disease')) {
+            return message + " Include both preventive measures and treatment methods, with organic options if available.";
+        }
+        else if (lower.includes('irrigation') || lower.includes('water')) {
+            return message + " Provide schedule, water requirements per acre, and efficiency tips.";
+        }
+        else if (lower.includes('weather') || lower.includes('rain')) {
+            return message + " Include impact on farming activities and precautions to take.";
+        }
+        else if (lower.includes('soil') || lower.includes('land')) {
+            return message + " Include soil preparation methods and improvement techniques.";
+        }
+        
+        return message + " Please provide detailed, practical information suitable for farmers.";
+    }
+
+    function ensureCompleteResponse(response, originalQuery) {
+        const lowerQuery = originalQuery.toLowerCase();
+        const lowerResponse = response.toLowerCase();
+        
+        if (response.length < 100 && !lowerResponse.includes('?') && !lowerResponse.includes('.')) {
+            return response + "\n\nFor more detailed information, please visit our specialized pages or ask a more specific question.";
+        }
+        
+        if (lowerQuery.includes('crop') && !lowerResponse.includes('yield') && !lowerResponse.includes('harvest')) {
+            return response + "\n\n🌾 **Additional Tips:**\n• Monitor soil moisture regularly\n• Check for pest infestation weekly\n• Maintain proper plant spacing\n• Test soil nutrients before sowing";
+        }
+        
+        if (lowerQuery.includes('fertilizer') && !lowerResponse.includes('apply') && !lowerResponse.includes('schedule')) {
+            return response + "\n\n🌱 **Application Tips:**\n• Apply fertilizers in the evening\n• Water immediately after application\n• Avoid application before heavy rain\n• Use soil testing for precise needs";
+        }
+        
+        return response;
+    }
+
+    function getUserContext() {
+        try {
+            const location = localStorage.getItem('user_location');
+            const crop = localStorage.getItem('primary_crop');
+            const soil = localStorage.getItem('soil_type');
+            
+            if (location || crop || soil) {
+                return {
+                    location: location || 'Unknown location',
+                    crop: crop || 'General farming',
+                    soil_type: soil || 'Various soil types',
+                    irrigation: localStorage.getItem('irrigation_type') || 'Not specified'
+                };
+            }
+            return null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function getDetailedFallbackResponse(message) {
+        const lower = message.toLowerCase();
+        
+        if (lower.includes('weather')) {
+            return `**Weather Information:**\n\n• Check the Weather page for real-time agricultural weather forecasts\n• Monitor rainfall patterns for irrigation planning\n• Protect crops from extreme temperatures with shade/cover\n• Ideal farming temperature: 20-30°C\n• Rain requirement: 500-1000mm annually for most crops\n\n**Action:** Visit Weather page for detailed forecasts and farming advisories.`;
+        } 
+        else if (lower.includes('fertilizer') || lower.includes('npk')) {
+            return `**Fertilizer Guidance:**\n\n• General NPK ratio for most crops: 4:2:1 (N:P:K)\n• Apply 100-150 kg/acre for cereal crops\n• Split application: 50% basal, 25% at 30 days, 25% at 60 days\n• Organic alternatives: Vermicompost (2-3 tonnes/acre), Farmyard manure (5-10 tonnes/acre)\n• Always conduct soil test before application\n\n**Recommendation:** Use the Fertilizer page for personalized recommendations based on your crop and soil.`;
+        }
+        else if (lower.includes('pest') || lower.includes('insect')) {
+            return `**Pest Control Methods:**\n\n**Preventive Measures:**\n• Crop rotation every season\n• Maintain field sanitation\n• Use resistant varieties\n• Proper spacing for air circulation\n\n**Organic Treatments:**\n• Neem oil spray: 5ml per liter water (weekly)\n• Garlic-chilli spray for chewing insects\n• Yellow sticky traps for flying pests\n• Biological control: Ladybugs for aphids\n\n**Chemical (if severe):**\n• Imidacloprid for sucking pests\n• Chlorpyriphos for soil insects\n• Always follow recommended dosage`;
+        }
+        else if (lower.includes('irrigation') || lower.includes('water')) {
+            return `**Irrigation Management:**\n\n**Methods (Most efficient first):**\n1. Drip irrigation - Saves 30-50% water\n2. Sprinkler irrigation - Good for light soils\n3. Furrow irrigation - Traditional, less efficient\n\n**Water Requirements:**\n• Rice: 1200-1500mm (standing water)\n• Wheat: 450-650mm (4-6 irrigations)\n• Vegetables: 500-800mm (frequent light irrigation)\n\n**Best Practices:**\n• Irrigate early morning (5-8 AM)\n• Monitor soil moisture at 15cm depth\n• Mulch to reduce evaporation\n• Use rainwater harvesting`;
+        }
+        else if (lower.includes('crop') && lower.includes('season')) {
+            return `**Seasonal Crop Calendar:**\n\n**KHARIF (June-September):**\n• Rice: June-July sowing, Oct-Nov harvest\n• Maize: June-July sowing, Sep-Oct harvest\n• Cotton: May-June sowing, Dec-Jan harvest\n• Soybean: June-July sowing, Sep-Oct harvest\n\n**RABI (October-March):**\n• Wheat: Nov-Dec sowing, Mar-Apr harvest\n• Chickpea: Oct-Nov sowing, Feb-Mar harvest\n• Mustard: Oct-Nov sowing, Feb-Mar harvest\n• Barley: Oct-Nov sowing, Mar-Apr harvest\n\n**Yield Expectations:**\n• Rice: 25-30 quintals/acre\n• Wheat: 20-25 quintals/acre\n• Vegetables: 80-120 quintals/acre`;
+        }
+        else {
+            return `I can help with detailed farming information about:\n\n🌾 **Crop Management:** Selection, sowing, harvesting\n🌱 **Fertilizers:** NPK ratios, organic options, application\n🐛 **Pest Control:** Prevention, organic treatments\n💧 **Irrigation:** Methods, scheduling, water conservation\n🌤️ **Weather:** Impact on farming, precautions\n💰 **Economics:** Costs, market prices, profitability\n\n**For specific advice:** Please ask detailed questions or visit our specialized pages for Weather, Fertilizer, and Market information.`;
+        }
+    }
+
+    function suggestPrompt(type) {
+        const prompts = {
+            weather: "{{ t('weather_prompt', user_language) }}",
+            fertilizer: "{{ t('fertilizer_prompt', user_language) }}",
+            pest: "{{ t('pest_prompt', user_language) }}",
+            irrigation: "{{ t('irrigation_prompt', user_language) }}"
+        };
+        
+        if (prompts[type]) {
+            chatInput.value = prompts[type];
+            chatInput.style.height = 'auto';
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
+            updateSendButton();
+            chatInput.focus();
+        }
+    }
+
+    function clearChat() {
+        if (messages.length === 0 && isFirstMessage) {
+            return;
+        }
+        
+        if (confirm(window.translations.clear_chat_confirm)) {
+            messages = [];
+            messagesArea.innerHTML = '';
+            welcomeCenter.classList.remove('hidden');
+            messagesContainer.classList.add('hidden');
+            isFirstMessage = true;
+            chatInput.value = '';
+            initializeInput();
+            chatInput.focus();
+            
+            if (voiceAssistant) {
+                voiceAssistant.stopSpeaking();
+            }
+            
+            currentSessionId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            console.log('🆕 New session:', currentSessionId);
+        }
     }
 
     function exportChat() {
-      if (messages.length === 0) {
-        alert('No messages to export');
-        return;
-      }
-      
-      let exportText = `Farm Assistant Chat - ${new Date().toLocaleString()}\n\n`;
-      
-      messages.forEach(msg => {
-        const role = msg.role === 'user' ? 'You' : 'Assistant';
-        const time = new Date(msg.timestamp).toLocaleTimeString();
-        exportText += `${role} (${time}):\n${msg.content}\n\n`;
-      });
-      
-      const blob = new Blob([exportText], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `farm-chat-${new Date().toISOString().split('T')[0]}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      alert('Chat exported successfully!');
+        if (messages.length === 0) {
+            alert(window.translations.no_messages);
+            return;
+        }
+        
+        let exportText = `${window.translations.farm_assistant} Chat - ${new Date().toLocaleString()}\n\n`;
+        
+        messages.forEach(msg => {
+            const role = msg.role === 'user' ? window.translations.you : window.translations.assistant;
+            const time = new Date(msg.timestamp).toLocaleTimeString();
+            exportText += `${role} (${time}):\n${msg.content}\n\n`;
+        });
+        
+        const blob = new Blob([exportText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `farm-chat-${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        alert(window.translations.chat_exported);
     }
 
+    // Make functions globally available
     window.startQuickChat = startQuickChat;
     window.sendMessage = sendMessage;
     window.suggestPrompt = suggestPrompt;
@@ -1440,6 +1463,5 @@
     window.exportChat = exportChat;
     window.toggleVoiceInput = toggleVoiceInput;
     window.toggleVoiceSettings = toggleVoiceSettings;
-  </script>
-</body>
-</html>
+</script>
+{% endblock %}
