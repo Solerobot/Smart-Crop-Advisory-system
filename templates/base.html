@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ user_language }}">
 <head>
+     <meta name="user-authenticated" content="{{ 'true' if current_user.is_authenticated else 'false' }}">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}{{ t('app_name', user_language) }}{% endblock %}</title>
@@ -114,6 +115,8 @@
         window.languageManager = new LanguageManager();
       }
     });
+        window.isAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
+    window.currentLanguage = '{{ user_language }}';
   </script>
   
   <!-- PAGE-SPECIFIC JAVASCRIPT (Pages can add their own) -->

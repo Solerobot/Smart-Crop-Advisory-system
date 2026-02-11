@@ -1,0 +1,149 @@
+<!-- templates/includes/language_switcher.html -->
+<!-- SIMPLIFIED Language Switcher - No errors -->
+<div class="language-switcher-container">
+  <select class="language-select" id="languageSelect" title="Select Language">
+    <option value="en" {% if user_language == 'en' %}selected{% endif %}>English</option>
+    <option value="hi" {% if user_language == 'hi' %}selected{% endif %}>हिन्दी (Hindi)</option>
+    <option value="te" {% if user_language == 'te' %}selected{% endif %}>తెలుగు (Telugu)</option>
+    <option value="ta" {% if user_language == 'ta' %}selected{% endif %}>தமிழ் (Tamil)</option>
+  </select>
+  
+  <div id="languageChangeStatus" style="display: none; margin-top: 8px; font-size: 13px;"></div>
+</div>
+
+<script>
+// SIMPLE Language Change Handler
+function handleLanguageChange(lang) {
+  console.log('Changing language to:', lang);
+  
+  const statusDiv = document.getElementById('languageChangeStatus');
+  statusDiv.style.display = 'block';
+  statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing language...';
+  statusDiv.style.color = '#3b82f6';
+  
+  // Check if user is logged in (from global variable or meta tag)
+  let isAuthenticated = false;
+  
+  // Method 1: Check meta tag (we'll add this to base.html)
+  const authMeta = document.querySelector('meta[name="user-authenticated"]');
+  if (authMeta) {
+    isAuthenticated = authMeta.getAttribute('content') === 'true';
+  }
+  
+  // Method 2: Check global variable (set by Flask in template)
+  if (typeof window.isAuthenticated !== 'undefined') {
+    isAuthenticated = window.isAuthenticated;
+  }
+  
+  const apiUrl = isAuthenticated ? '/api/set-language' : '/api/set-guest-language';
+  
+  fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ language: lang })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      statusDiv.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i> Language changed!';
+      statusDiv.style.color = '#10b981';
+      
+      // Update Voice Assistant if it exists
+      if (window.voiceAssistant && typeof window.voiceAssistant.setLanguage === 'function') {
+        try {
+          window.voiceAssistant.setLanguage(lang);
+        } catch (e) {
+          console.warn('Could not update Voice Assistant:', e);
+        }
+      }
+      
+      // Reload page after 1 second
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      throw new Error(data.message || 'Failed to change language');
+    }
+  })
+  .catch(error => {
+    console.error('Language change error:', error);
+    statusDiv.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Error: ${error.message}`;
+    statusDiv.style.color = '#ef4444';
+    
+    // Reset select to previous value
+    const previousLang = "{{ user_language }}";  // This Jinja2 will work here
+    document.getElementById('languageSelect').value = previousLang;
+    
+    // Hide error after 3 seconds
+    setTimeout(() => {
+      statusDiv.style.display = 'none';
+    }, 3000);
+  });
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  const select = document.getElementById('languageSelect');
+  if (select) {
+    select.addEventListener('change', function() {
+      handleLanguageChange(this.value);
+    });
+  }
+  
+  // Set initial Voice Assistant language if available
+  const currentLang = "{{ user_language }}";
+  if (window.voiceAssistant && typeof window.voiceAssistant.setLanguage === 'function') {
+    setTimeout(() => {
+      window.voiceAssistant.setLanguage(currentLang);
+    }, 1000);
+  }
+});
+</script>
+
+<style>
+.language-switcher-container {
+  display: inline-block;
+}
+
+.language-select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: white;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 140px;
+  transition: all 0.2s;
+}
+
+.language-select:hover {
+  border-color: #10b981;
+}
+
+.language-select:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+/* For sidebar */
+.sidebar .language-switcher-container {
+  width: 100%;
+  padding: 10px 16px;
+}
+
+.sidebar .language-select {
+  width: 100%;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .language-select {
+    min-width: 120px;
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}
+</style>
