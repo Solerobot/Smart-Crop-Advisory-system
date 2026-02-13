@@ -1,385 +1,406 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Features | Smart Crop Advisory</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Color Palette - Matching Dashboard */
-        :root {
-            --leaf-green: #16a34a;
-            --fresh-green: #22c55e;
-            --sky-blue: #0ea5e9;
-            --water-blue: #3b82f6;
-            --sun-yellow: #eab308;
-        }
+<!-- templates/features.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ t('features_title', user_language) }} - {{ t('app_name', user_language) }}{% endblock %}
+
+{% block styles %}
+<style>
+    /* Color Palette - Matching Dashboard */
+    :root {
+        --leaf-green: #16a34a;
+        --fresh-green: #22c55e;
+        --sky-blue: #0ea5e9;
+        --water-blue: #3b82f6;
+        --sun-yellow: #eab308;
+    }
+    
+    .bg-leaf { background-color: var(--leaf-green); }
+    .bg-sky { background-color: var(--sky-blue); }
+    .bg-sun { background-color: var(--sun-yellow); }
+    
+    .text-leaf { color: var(--leaf-green); }
+    .text-sky { color: var(--sky-blue); }
+    .text-sun { color: var(--sun-yellow); }
+    
+    .card-shadow {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .transition-smooth {
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .feature-card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px -3px rgba(11, 176, 106, 0.15);
+    }
+    
+    /* Slideshow Animation */
+    .slideshow-container {
+        position: relative;
+        width: 100%;
+        height: 240px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        animation: slideshowAnim 20s infinite;
+    }
+    
+    .slide:nth-child(1) { animation-delay: 0s; }
+    .slide:nth-child(2) { animation-delay: 4s; }
+    .slide:nth-child(3) { animation-delay: 8s; }
+    .slide:nth-child(4) { animation-delay: 12s; }
+    .slide:nth-child(5) { animation-delay: 16s; }
+    
+    @keyframes slideshowAnim {
+        0%, 20% { opacity: 0; }
+        5%, 15% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+    
+    /* Gradient Border Effect */
+    .gradient-border {
+        position: relative;
+        border-radius: 12px;
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(135deg, var(--leaf-green), var(--sky-blue)) border-box;
+        border: 2px solid transparent;
+    }
+    
+    /* Ribbon Effect */
+    .ribbon {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--leaf-green), var(--fresh-green));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Main Content - Original Sidebar from features.html -->
+<div class="min-h-screen flex">
+    <!-- Sidebar - ORIGINAL from features.html -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
+        <!-- Logo -->
+        <div class="p-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-leaf rounded-lg flex items-center justify-center">
+                    <i class="fas fa-leaf text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-800">{{ t('app_name_short', user_language) }}</h1>
+                    <p class="text-xs text-gray-500">{{ t('app_name_suffix', user_language) }}</p>
+                </div>
+            </div>
+        </div>
         
-        .bg-leaf { background-color: var(--leaf-green); }
-        .bg-sky { background-color: var(--sky-blue); }
-        .bg-sun { background-color: var(--sun-yellow); }
+        <!-- Navigation - WITH HOME PAGE LINK -->
+        <nav class="flex-1 px-3">
+            <ul class="space-y-1">
+                <!-- HOME PAGE LINK -->
+                <li>
+                    <a href="/" class="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-home w-5"></i>
+                        <span>{{ t('home', user_language) }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/dashboard" class="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-tachometer-alt w-5"></i>
+                        <span>{{ t('dashboard', user_language) }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/weather" class="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-cloud-sun w-5"></i>
+                        <span>{{ t('weather', user_language) }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/features" class="flex items-center space-x-3 px-3 py-2.5 bg-leaf text-white rounded-lg">
+                        <i class="fas fa-star w-5"></i>
+                        <span>{{ t('features', user_language) }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/chatbot" class="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-comments w-5"></i>
+                        <span>{{ t('chatbot', user_language) }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/about" class="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-info-circle w-5"></i>
+                        <span>{{ t('about', user_language) }}</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
         
-        .text-leaf { color: var(--leaf-green); }
-        .text-sky { color: var(--sky-blue); }
-        .text-sun { color: var(--sun-yellow); }
-        
-        .card-shadow {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        
-        .transition-smooth {
-            transition: all 0.2s ease-in-out;
-        }
-        
-        .feature-card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px -3px rgba(11, 176, 106, 0.15);
-        }
-        
-        /* Slideshow Animation */
-        .slideshow-container {
-            position: relative;
-            width: 100%;
-            height: 240px;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        
-        .slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0;
-            animation: slideshowAnim 20s infinite;
-        }
-        
-        .slide:nth-child(1) { animation-delay: 0s; }
-        .slide:nth-child(2) { animation-delay: 4s; }
-        .slide:nth-child(3) { animation-delay: 8s; }
-        .slide:nth-child(4) { animation-delay: 12s; }
-        .slide:nth-child(5) { animation-delay: 16s; }
-        
-        @keyframes slideshowAnim {
-            0%, 20% { opacity: 0; }
-            5%, 15% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-        
-        /* Gradient Border Effect */
-        .gradient-border {
-            position: relative;
-            border-radius: 12px;
-            background: linear-gradient(white, white) padding-box,
-                        linear-gradient(135deg, var(--leaf-green), var(--sky-blue)) border-box;
-            border: 2px solid transparent;
-        }
-        
-        /* Ribbon Effect */
-        .ribbon {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--leaf-green), var(--fresh-green));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 14px;
-        }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <!-- Sidebar -->
-    <div class="min-h-screen flex">
-        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
-            <!-- Logo -->
-            <div class="p-6">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-leaf rounded-lg flex items-center justify-center">
-                        <i class="fas fa-leaf text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-lg font-bold text-gray-800">Smart Crop</h1>
-                        <p class="text-xs text-gray-500">Advisory System</p>
+        <!-- User Info -->
+        <div class="p-4 border-t border-gray-200">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-sky rounded-full flex items-center justify-center">
+                    <span class="text-white font-semibold" id="userInitial">U</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="font-medium text-gray-800 truncate" id="userName">{{ t('loading', user_language) }}</div>
+                    <div class="text-xs text-gray-500 truncate" id="userLocation">{{ t('location', user_language) }}</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">{{ t('features_title', user_language) }}</h2>
+                    <p class="text-sm text-gray-600">{{ t('features_subtitle', user_language) }}</p>
+                </div>
+                <div class="flex space-x-2">
+                    <a href="/dashboard" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-smooth text-sm">
+                        <i class="fas fa-arrow-left mr-1"></i>{{ t('back_to_dashboard', user_language) }}
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Features Content -->
+        <div class="p-6">
+            <!-- Hero Section -->
+            <div class="mb-8">
+                <div class="bg-white rounded-xl p-6 card-shadow gradient-border">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800 mb-3">{{ t('features_hero_title', user_language) }}</h1>
+                            <p class="text-gray-600 mb-4">
+                                {{ t('features_hero_description', user_language) }}
+                            </p>
+                            <div class="flex space-x-3">
+                                <a href="/weather" class="px-4 py-2 bg-leaf text-white rounded-lg hover:bg-green-700 transition-smooth">
+                                    <i class="fas fa-cloud-sun mr-2"></i>{{ t('try_weather_module', user_language) }}
+                                </a>
+                                <a href="/fertilizer" class="px-4 py-2 bg-sky text-white rounded-lg hover:bg-blue-600 transition-smooth">
+                                    <i class="fas fa-flask mr-2"></i>{{ t('fertilizer_guide', user_language) }}
+                                </a>
+                            </div>
+                        </div>
+                        <div class="slideshow-container">
+                            <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=800" class="slide" alt="{{ t('farm_field_alt', user_language) }}">
+                            <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800" class="slide" alt="{{ t('weather_alt', user_language) }}">
+                            <img src="https://images.unsplash.com/photo-1581093588401-22f6364f3080?q=80&w=800" class="slide" alt="{{ t('fertilizer_alt', user_language) }}">
+                            <img src="https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?q=80&w=800" class="slide" alt="{{ t('farmers_alt', user_language) }}">
+                            <img src="https://images.unsplash.com/photo-1471193945509-9ad0617afabf?q=80&w=800" class="slide" alt="{{ t('harvest_alt', user_language) }}">
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Navigation -->
-            <nav class="flex-1 px-3">
-                <ul class="space-y-1">
-                    <li>
-                        <a href="dashboard.html" class="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg">
-                            <i class="fas fa-home w-5"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="weather.html" class="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg">
-                            <i class="fas fa-cloud-sun w-5"></i>
-                            <span>Weather</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="features.html" class="flex items-center space-x-3 px-3 py-2.5 bg-leaf text-white rounded-lg">
-                            <i class="fas fa-star w-5"></i>
-                            <span>Features</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="chatbot.html" class="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg">
-                            <i class="fas fa-comments w-5"></i>
-                            <span>Chat Assistant</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="about.html" class="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg">
-                            <i class="fas fa-info-circle w-5"></i>
-                            <span>About</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            
-            <!-- User Info -->
-            <div class="p-4 border-t border-gray-200">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-sky rounded-full flex items-center justify-center">
-                        <span class="text-white font-semibold" id="userInitial">U</span>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="font-medium text-gray-800 truncate" id="userName">User</div>
-                        <div class="text-xs text-gray-500 truncate" id="userLocation">Location</div>
-                    </div>
-                </div>
-            </div>
-        </aside>
 
-        <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto">
-            <!-- Header -->
-            <header class="bg-white border-b border-gray-200 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-800">Features</h2>
-                        <p class="text-sm text-gray-600">Explore our agricultural advisory tools</p>
-                    </div>
-                    <div class="flex space-x-2">
-                        <a href="dashboard.html" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-smooth text-sm">
-                            <i class="fas fa-arrow-left mr-1"></i>Back to Dashboard
-                        </a>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Features Content -->
-            <div class="p-6">
-                <!-- Hero Section -->
-                <div class="mb-8">
-                    <div class="bg-white rounded-xl p-6 card-shadow gradient-border">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <!-- Features Grid -->
+            <div class="mb-8">
+                <h3 class="font-semibold text-gray-800 mb-4 text-lg">{{ t('core_features', user_language) }}</h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Weather Advisory Card -->
+                    <div class="bg-white rounded-xl p-5 card-shadow feature-card-hover transition-smooth cursor-pointer" 
+                         onclick="window.location.href='/weather'">
+                        <div class="flex items-start mb-4">
+                            <div class="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-cloud-sun text-2xl text-sky"></i>
+                            </div>
                             <div>
-                                <h1 class="text-2xl font-bold text-gray-800 mb-3">Smart Agricultural Tools</h1>
-                                <p class="text-gray-600 mb-4">
-                                    Get practical, data-driven recommendations for irrigation, fertilizer timing, and crop management — 
-                                    tailored to your specific crop, soil type, and local weather conditions.
-                                </p>
-                                <div class="flex space-x-3">
-                                    <a href="weather.html" class="px-4 py-2 bg-leaf text-white rounded-lg hover:bg-green-700 transition-smooth">
-                                        <i class="fas fa-cloud-sun mr-2"></i>Try Weather Module
-                                    </a>
-                                    <a href="fertilizer.html" class="px-4 py-2 bg-sky text-white rounded-lg hover:bg-blue-600 transition-smooth">
-                                        <i class="fas fa-flask mr-2"></i>Fertilizer Guide
-                                    </a>
-                                </div>
+                                <h4 class="font-bold text-gray-800 text-lg">{{ t('weather_advisory_title', user_language) }}</h4>
+                                <p class="text-sm text-gray-500">{{ t('weather_advisory_subtitle', user_language) }}</p>
                             </div>
-                            <div class="slideshow-container">
-                                <img src="https://images.unsplash.com/photo-1501004318641-b39e6451bec6?q=80&w=800" class="slide" alt="Farm field">
-                                <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800" class="slide" alt="Weather">
-                                <img src="https://images.unsplash.com/photo-1581093588401-22f6364f3080?q=80&w=800" class="slide" alt="Fertilizer">
-                                <img src="https://images.unsplash.com/photo-1524593119773-7c89c1e8199f?q=80&w=800" class="slide" alt="Farmers">
-                                <img src="https://images.unsplash.com/photo-1471193945509-9ad0617afabf?q=80&w=800" class="slide" alt="Harvest">
+                            <div class="ribbon">
+                                <i class="fas fa-bolt"></i>
                             </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <ul class="space-y-2 text-sm text-gray-600">
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-leaf mr-2"></i>
+                                    <span>{{ t('weather_feature_1', user_language) }}</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-leaf mr-2"></i>
+                                    <span>{{ t('weather_feature_2', user_language) }}</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-leaf mr-2"></i>
+                                    <span>{{ t('weather_feature_3', user_language) }}</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-leaf mr-2"></i>
+                                    <span>{{ t('weather_feature_4', user_language) }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="pt-4 border-t border-gray-100 flex justify-between items-center">
+                            <div class="flex items-center">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+                                    <i class="fas fa-sync-alt mr-1"></i> {{ t('live_data', user_language) }}
+                                </span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-map-marker-alt mr-1"></i> {{ t('location_based', user_language) }}
+                                </span>
+                            </div>
+                            <button class="px-4 py-2 bg-sky text-white rounded-lg hover:bg-blue-600 transition-smooth text-sm">
+                                {{ t('open_weather', user_language) }} <i class="fas fa-arrow-right ml-1"></i>
+                            </button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Features Grid -->
-                <div class="mb-8">
-                    <h3 class="font-semibold text-gray-800 mb-4 text-lg">Core Features</h3>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Weather Advisory Card -->
-                        <div class="bg-white rounded-xl p-5 card-shadow feature-card-hover transition-smooth cursor-pointer" 
-                             onclick="window.location.href='weather.html'">
-                            <div class="flex items-start mb-4">
-                                <div class="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
-                                    <i class="fas fa-cloud-sun text-2xl text-sky"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800 text-lg">Weather Advisory</h4>
-                                    <p class="text-sm text-gray-500">Real-time forecasts tuned for agricultural needs</p>
-                                </div>
-                                <div class="ribbon">
-                                    <i class="fas fa-bolt"></i>
-                                </div>
+                    <!-- Fertilizer Recommendation Card -->
+                    <div class="bg-white rounded-xl p-5 card-shadow feature-card-hover transition-smooth cursor-pointer" 
+                         onclick="window.location.href='/fertilizer'">
+                        <div class="flex items-start mb-4">
+                            <div class="w-14 h-14 bg-green-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-flask text-2xl text-leaf"></i>
                             </div>
-                            
-                            <div class="mb-4">
-                                <ul class="space-y-2 text-sm text-gray-600">
-                                    <li class="flex items-center">
-                                        <i class="fas fa-check-circle text-leaf mr-2"></i>
-                                        <span>Current conditions & 7-day forecast</span>
-                                    </li>
-                                    <li class="flex items-center">
-                                        <i class="fas fa-check-circle text-leaf mr-2"></i>
-                                        <span>Irrigation & spraying guidance</span>
-                                    </li>
-                                    <li class="flex items-center">
-                                        <i class="fas fa-check-circle text-leaf mr-2"></i>
-                                        <span>Disease & extreme weather alerts</span>
-                                    </li>
-                                    <li class="flex items-center">
-                                        <i class="fas fa-check-circle text-leaf mr-2"></i>
-                                        <span>Crop-specific weather impact analysis</span>
-                                    </li>
-                                </ul>
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-lg">{{ t('fertilizer_recommendation_title', user_language) }}</h4>
+                                <p class="text-sm text-gray-500">{{ t('fertilizer_recommendation_subtitle', user_language) }}</p>
                             </div>
-                            
-                            <div class="pt-4 border-t border-gray-100 flex justify-between items-center">
-                                <div class="flex items-center">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
-                                        <i class="fas fa-sync-alt mr-1"></i> Live Data
-                                    </span>
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        <i class="fas fa-map-marker-alt mr-1"></i> Location-Based
-                                    </span>
-                                </div>
-                                <button class="px-4 py-2 bg-sky text-white rounded-lg hover:bg-blue-600 transition-smooth text-sm">
-                                    Open Weather <i class="fas fa-arrow-right ml-1"></i>
-                                </button>
+                            <div class="ribbon">
+                                <i class="fas fa-seedling"></i>
                             </div>
                         </div>
-
-                        <!-- Fertilizer Recommendation Card -->
-                        <div class="bg-white rounded-xl p-5 card-shadow feature-card-hover transition-smooth cursor-pointer" 
-                             onclick="window.location.href='fertilizer.html'">
-                            <div class="flex items-start mb-4">
-                                <div class="w-14 h-14 bg-green-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
-                                    <i class="fas fa-flask text-2xl text-leaf"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800 text-lg">Fertilizer Recommendation</h4>
-                                    <p class="text-sm text-gray-500">Smart NPK suggestions based on soil and crop stage</p>
-                                </div>
-                                <div class="ribbon">
-                                    <i class="fas fa-seedling"></i>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <ul class="space-y-2 text-sm text-gray-600">
-                                    <li class="flex items-center">
-                                        <i class="fas fa-check-circle text-leaf mr-2"></i>
-                                        <span>Stage-wise NPK suggestions</span>
-                                    </li>
-                                    <li class="flex items-center">
-                                        <i class="fas fa-check-circle text-leaf mr-2"></i>
-                                        <span>Weather-aware application timing</span>
-                                    </li>
-                                    <li class="flex items-center">
-                                        <i class="fas fa-check-circle text-leaf mr-2"></i>
-                                        <span>Cost-effective dosage calculations</span>
-                                    </li>
-                                    <li class="flex items-center">
-                                        <i class="fas fa-check-circle text-leaf mr-2"></i>
-                                        <span>Soil type specific recommendations</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            
-                            <div class="pt-4 border-t border-gray-100 flex justify-between items-center">
-                                <div class="flex items-center">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
-                                        <i class="fas fa-vial mr-1"></i> Soil Aware
-                                    </span>
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                        <i class="fas fa-calculator mr-1"></i> Cost-Optimized
-                                    </span>
-                                </div>
-                                <button class="px-4 py-2 bg-leaf text-white rounded-lg hover:bg-green-700 transition-smooth text-sm">
-                                    Open Fertilizer <i class="fas fa-arrow-right ml-1"></i>
-                                </button>
-                            </div>
+                        
+                        <div class="mb-4">
+                            <ul class="space-y-2 text-sm text-gray-600">
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-leaf mr-2"></i>
+                                    <span>{{ t('fertilizer_feature_1', user_language) }}</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-leaf mr-2"></i>
+                                    <span>{{ t('fertilizer_feature_2', user_language) }}</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-leaf mr-2"></i>
+                                    <span>{{ t('fertilizer_feature_3', user_language) }}</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-leaf mr-2"></i>
+                                    <span>{{ t('fertilizer_feature_4', user_language) }}</span>
+                                </li>
+                            </ul>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Additional Info -->
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <h3 class="font-bold text-gray-800 mb-4">How It Works</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="text-center">
-                            <div class="w-12 h-12 bg-leaf rounded-full flex items-center justify-center mx-auto mb-3">
-                                <i class="fas fa-user text-white"></i>
+                        
+                        <div class="pt-4 border-t border-gray-100 flex justify-between items-center">
+                            <div class="flex items-center">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
+                                    <i class="fas fa-vial mr-1"></i> {{ t('soil_aware', user_language) }}
+                                </span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <i class="fas fa-calculator mr-1"></i> {{ t('cost_optimized', user_language) }}
+                                </span>
                             </div>
-                            <h4 class="font-medium text-gray-800 mb-2">1. Set Your Profile</h4>
-                            <p class="text-sm text-gray-500">Tell us about your farm location, crop type, and soil conditions</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="w-12 h-12 bg-sky rounded-full flex items-center justify-center mx-auto mb-3">
-                                <i class="fas fa-cloud text-white"></i>
-                            </div>
-                            <h4 class="font-medium text-gray-800 mb-2">2. Get Real-time Data</h4>
-                            <p class="text-sm text-gray-500">Receive weather updates and agricultural insights</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="w-12 h-12 bg-sun rounded-full flex items-center justify-center mx-auto mb-3">
-                                <i class="fas fa-lightbulb text-white"></i>
-                            </div>
-                            <h4 class="font-medium text-gray-800 mb-2">3. Make Smart Decisions</h4>
-                            <p class="text-sm text-gray-500">Follow recommendations for better yield and reduced costs</p>
+                            <button class="px-4 py-2 bg-leaf text-white rounded-lg hover:bg-green-700 transition-smooth text-sm">
+                                {{ t('open_fertilizer', user_language) }} <i class="fas fa-arrow-right ml-1"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
 
-    <!-- Floating Chatbot Button -->
-    <div onclick="window.location.href='chatbot.html'" 
-         class="fixed bottom-6 right-6 w-16 h-16 bg-white rounded-full flex items-center justify-center card-shadow cursor-pointer hover:scale-105 transition-smooth z-30">
-        <i class="fas fa-comments text-leaf text-xl"></i>
-    </div>
+            <!-- Additional Info -->
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <h3 class="font-bold text-gray-800 mb-4">{{ t('how_it_works_title', user_language) }}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-leaf rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <h4 class="font-medium text-gray-800 mb-2">{{ t('step1_title', user_language) }}</h4>
+                        <p class="text-sm text-gray-500">{{ t('step1_desc', user_language) }}</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-sky rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-cloud text-white"></i>
+                        </div>
+                        <h4 class="font-medium text-gray-800 mb-2">{{ t('step2_title', user_language) }}</h4>
+                        <p class="text-sm text-gray-500">{{ t('step2_desc', user_language) }}</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-sun rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-lightbulb text-white"></i>
+                        </div>
+                        <h4 class="font-medium text-gray-800 mb-2">{{ t('step3_title', user_language) }}</h4>
+                        <p class="text-sm text-gray-500">{{ t('step3_desc', user_language) }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load user info from localStorage
-            const userName = localStorage.getItem('user-name') || 'User';
-            const userLocation = localStorage.getItem('user_location') || 'Set location';
-            
-            document.getElementById('userName').textContent = userName;
-            document.getElementById('userInitial').textContent = userName.charAt(0).toUpperCase();
-            document.getElementById('userLocation').textContent = userLocation;
-            
-            // Add click effects to feature cards
-            const featureCards = document.querySelectorAll('.feature-card-hover');
-            featureCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    const href = this.getAttribute('onclick').match(/location\.href='(.*?)'/);
-                    if (href && href[1]) {
-                        window.location.href = href[1];
-                    }
-                });
+<!-- Floating Chatbot Button -->
+<div onclick="window.location.href='/chatbot'" 
+     class="fixed bottom-6 right-6 w-16 h-16 bg-white rounded-full flex items-center justify-center card-shadow cursor-pointer hover:scale-105 transition-smooth z-30">
+    <i class="fas fa-comments text-leaf text-xl"></i>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // ========== TRANSLATIONS FOR JAVASCRIPT ==========
+    window.featuresTranslations = {
+        welcome_user: "{{ t('welcome_user', user_language) }}",
+        logout: "{{ t('logout', user_language) }}",
+        loading: "{{ t('loading', user_language) }}",
+        location: "{{ t('location', user_language) }}"
+    };
+    
+    // ========== LOAD USER INFO ==========
+    function loadUserInfo() {
+        const userName = localStorage.getItem('user-name') || 'User';
+        const userLocation = localStorage.getItem('user_location') || '{{ t("set_location", user_language) }}';
+        
+        document.getElementById('userName').textContent = userName;
+        document.getElementById('userInitial').textContent = userName.charAt(0).toUpperCase();
+        document.getElementById('userLocation').textContent = userLocation;
+    }
+
+    // ========== INITIALIZATION ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load user info
+        loadUserInfo();
+        
+        // Add click effects to feature cards
+        const featureCards = document.querySelectorAll('.feature-card-hover');
+        featureCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const match = this.getAttribute('onclick')?.match(/location\.href='(.*?)'/);
+                if (match && match[1]) {
+                    window.location.href = match[1];
+                }
             });
         });
-    </script>
-</body>
-</html>
+    });
+</script>
+{% endblock %}
