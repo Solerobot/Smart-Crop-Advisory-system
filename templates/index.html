@@ -1,21 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Crop Advisory System</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <style>
-    /* Color Palette - Same as dashboard */
+<!-- templates/index.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ t('app_name', user_language) }}{% endblock %}
+
+{% block styles %}
+<style>
+    /* Color Palette - Keep original dark colors */
     :root {
       --leaf-green: #16a34a;
       --fresh-green: #22c55e;
       --sky-blue: #0ea5e9;
       --water-blue: #3b82f6;
       --sun-yellow: #eab308;
-      --dark-green: #0d6e3f; /* Added darker green */
+      --dark-green: #0d6e3f;
+      /* Mint Green Additions - JUST A HINT */
+      --mint-bg-light: #f8fff8;  /* Very subtle mint tint for background */
+      --mint-border: #e0f0e0;     /* Soft mint for borders only */
     }
     
     .bg-leaf { background-color: var(--leaf-green); }
@@ -28,61 +28,21 @@
     .text-sun { color: var(--sun-yellow); }
     .text-dark-green { color: var(--dark-green); }
     
-    /* Feature card hover effect */
+    /* Feature card hover effect - original but with mint border */
     .feature-card {
       transition: all 0.3s ease;
       cursor: pointer;
+      background: white;
+      border: 1px solid #e5e7eb;  /* Original gray border */
+      border-radius: 1rem;
     }
     
     .feature-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(13, 110, 63, 0.15);
-      border-color: var(--leaf-green);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      border-color: var(--leaf-green);  /* Green on hover (original) */
     }
     
-    /* Language switcher styles */
-    .language-switcher {
-      position: relative;
-      display: inline-block;
-    }
-    
-    .language-dropdown {
-      position: absolute;
-      top: 100%;
-      right: 0;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      min-width: 140px;
-      z-index: 1000;
-      display: none;
-      margin-top: 0.5rem;
-    }
-    
-    .language-dropdown.show {
-      display: block;
-    }
-    
-    .lang-option {
-      padding: 0.75rem 1rem;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 0.875rem;
-    }
-    
-    .lang-option:hover {
-      background-color: #f3f4f6;
-    }
-    
-    .lang-option.active {
-      background-color: #dcfce7;
-      color: #166534;
-    }
-
     /* User menu styles */
     .user-menu {
       display: flex;
@@ -92,7 +52,7 @@
     
     .user-welcome {
       font-size: 0.875rem;
-      color: #374151;
+      color: #374151;  /* Original dark gray */
       font-weight: 500;
     }
     
@@ -122,7 +82,7 @@
     /* Loading spinner */
     .spinner {
       border: 2px solid #f3f3f3;
-      border-top: 2px solid #16a34a;
+      border-top: 2px solid var(--leaf-green);
       border-radius: 50%;
       width: 16px;
       height: 16px;
@@ -139,360 +99,334 @@
       transition: all 0.2s ease-in-out;
     }
     
-    /* Card shadow - Same as dashboard */
+    /* Card shadow - original */
     .card-shadow {
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
     
-    /* Dark green CTA section */
+    /* Dark green CTA section - keep original */
     .cta-section {
       background: linear-gradient(135deg, #0d6e3f, #0a5c36);
     }
-  </style>
-</head>
-<body class="bg-gradient-to-b from-green-50 to-white text-gray-900 antialiased">
+    
+    /* JUST A HINT OF MINT - body background only */
+    body {
+      background-color: var(--mint-bg-light);
+    }
+    /* LIGHT GREEN BACKGROUND */
+body {
+  background: linear-gradient(135deg, #f0f9f0 0%, #ffffff 100%);
+}
+</style>
+{% endblock %}
 
-  <!-- MAIN CONTENT -->
-  <div id="main-content">
+{% block content %}
+<!-- MAIN CONTENT -->
+<div id="main-content">
 
-    <!-- NAVBAR -->
-    <header class="sticky top-0 z-50 bg-white border-b shadow-md">
-      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <div class="w-10 h-10 bg-leaf rounded-lg flex items-center justify-center shadow-md">
-            <i class="fas fa-leaf text-white text-lg"></i>
-          </div>
-          <div>
-            <h1 class="text-lg font-semibold">Smart Crop Advisory</h1>
-            <p class="text-xs text-gray-600">Decision support for small & marginal farmers</p>
-          </div>
-        </div>
-
-        <nav class="hidden md:flex items-center gap-6 text-sm text-gray-700 font-medium">
-          <a class="hover:text-green-700 transition-all" href="features.html">Features</a>
-          <a class="hover:text-green-700 transition-all" href="#how">How it works</a>
-          <a class="hover:text-green-700 transition-all" href="#about">About</a>
-          <a class="hover:text-green-700 transition-all" href="#contact">Contact</a>
-          
-          <!-- LANGUAGE SWITCHER -->
-          <div class="language-switcher">
-            <button id="language-toggle" class="px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-50 flex items-center gap-1 transition-all">
-              <span id="current-lang">EN</span>
-              <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div id="language-dropdown" class="language-dropdown">
-              <div class="lang-option active" data-lang="en">
-                <span>🇺🇸</span>
-                <span>English</span>
-              </div>
-              <div class="lang-option" data-lang="hi">
-                <span>🇮🇳</span>
-                <span>हिन्दी</span>
-              </div>
-              <div class="lang-option" data-lang="te">
-                <span>🇮🇳</span>
-                <span>తెలుగు</span>
-              </div>
+    <!-- NAVBAR - Added pr-40 to make room for fixed language switcher -->
+    <header class="sticky top-0 z-40 bg-white border-b shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between pr-40">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-leaf rounded-lg flex items-center justify-center shadow-md">
+                    <i class="fas fa-leaf text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-semibold text-gray-800">{{ t('app_name_short', user_language) }}</h1>
+                    <p class="text-xs text-gray-600">{{ t('app_name_suffix', user_language) }}</p>
+                </div>
             </div>
-          </div>
-          
-          <!-- DYNAMIC AUTH SECTION -->
-          <div id="auth-section" class="auth-buttons">
-            <!-- This will be populated by JavaScript -->
-            <a href="login.html" class="px-4 py-2 rounded-md border border-green-600 text-green-600 hover:bg-green-50 transition-all font-medium">
-              Login
-            </a>
-            <a href="signup.html" class="px-4 py-2 rounded-md bg-leaf text-white hover:bg-green-700 transition-all font-medium">
-              Sign Up
-            </a>
-          </div>
-        </nav>
 
-        <div class="md:hidden flex items-center gap-3">
-          <!-- Mobile Language Select -->
-          <select id="mobile-language-select" class="text-sm border rounded-md px-2 py-1 bg-white">
-            <option value="en">EN</option>
-            <option value="hi">HI</option>
-            <option value="te">TE</option>
-          </select>
+            <nav class="hidden md:flex items-center gap-6 text-sm text-gray-700 font-medium">
+                <a class="hover:text-green-700 transition-all" href="features.html">{{ t('features', user_language) }}</a>
+                <a class="hover:text-green-700 transition-all" href="#how">{{ t('how_it_works', user_language) }}</a>
+                <a class="hover:text-green-700 transition-all" href="#about">{{ t('about', user_language) }}</a>
+                <a class="hover:text-green-700 transition-all" href="#contact">{{ t('contact', user_language) }}</a>
+                
+                <!-- LANGUAGE SWITCHER - REMOVED COMPLETELY (using base.html version) -->
+                
+                <!-- DYNAMIC AUTH SECTION -->
+                <div id="auth-section" class="auth-buttons">
+                    <!-- This will be populated by JavaScript -->
+                    <a href="login.html" class="px-4 py-2 rounded-md border border-green-600 text-green-600 hover:bg-green-50 transition-all font-medium">
+                        {{ t('login', user_language) }}
+                    </a>
+                    <a href="signup.html" class="px-4 py-2 rounded-md bg-leaf text-white hover:bg-green-700 transition-all font-medium">
+                        {{ t('signup', user_language) }}
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Mobile menu - simplified -->
+            <div class="md:hidden flex items-center gap-3">
+                <!-- Mobile auth links will be handled by responsive menu -->
+            </div>
         </div>
-      </div>
     </header>
 
     <!-- HERO SECTION -->
     <main class="max-w-7xl mx-auto px-6 py-20">
-      <section class="text-center">
-        <h2 class="text-4xl md:text-6xl font-extrabold leading-tight">
-          Smart, low-cost crop advice — built for small & marginal farmers
-        </h2>
-        <p class="mt-6 text-gray-700 text-lg max-w-3xl mx-auto">
-          A virtual decision-support platform using weather, soil, and crop data to provide localized recommendations 
-          for crop selection, fertilizer application, irrigation, and pest control.
-        </p>
+        <section class="text-center">
+            <h2 class="text-4xl md:text-6xl font-extrabold leading-tight text-gray-900">
+                {{ t('hero_title', user_language) }}
+            </h2>
+            <p class="mt-6 text-gray-700 text-lg max-w-3xl mx-auto">
+                {{ t('hero_description', user_language) }}
+            </p>
 
-        <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
-          <!-- DYNAMIC GET STARTED BUTTON -->
-          <a id="get-started-btn" href="login.html" class="px-6 py-3 rounded-md bg-leaf text-white font-medium hover:bg-green-700 shadow transition-all flex items-center justify-center gap-2">
-            <span id="get-started-text">Get personalized advice</span>
-            <div id="get-started-spinner" class="hidden">
-              <div class="spinner"></div>
+            <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+                <!-- DYNAMIC GET STARTED BUTTON -->
+                <a id="get-started-btn" href="login.html" class="px-6 py-3 rounded-md bg-leaf text-white font-medium hover:bg-green-700 shadow transition-all flex items-center justify-center gap-2">
+                    <span id="get-started-text">{{ t('get_personalized_advice', user_language) }}</span>
+                    <div id="get-started-spinner" class="hidden">
+                        <div class="spinner"></div>
+                    </div>
+                </a>
+                <a href="features.html" class="px-6 py-3 rounded-md border border-green-600 text-green-600 hover:bg-green-50 transition-all">
+                    {{ t('explore_features', user_language) }}
+                </a>
             </div>
-          </a>
-          <a href="/features.html" class="px-6 py-3 rounded-md border border-green-600 text-green-600 hover:bg-green-50 transition-all">
-            Explore features
-          </a>
-        </div>
-      </section>
+        </section>
 
-      <!-- FEATURES SECTION -->
-      <section id="features" class="py-20 mt-12">
-        <h3 class="text-3xl font-bold text-center mb-12">Key Features</h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- Weather Card -->
-          <div class="feature-card bg-white p-6 rounded-xl card-shadow border border-gray-100 hover:border-leaf" 
-               onclick="redirectToFeature('weather')">
-            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-              <i class="fas fa-cloud-sun text-leaf text-xl"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-2">Smart Weather Alerts</h4>
-            <p class="text-gray-600 text-sm">Get personalized weather forecasts and alerts for your specific location and crops.</p>
-            <div class="mt-4 flex items-center text-leaf text-sm font-medium">
-              <span>Try it now</span>
-              <i class="fas fa-arrow-right ml-2"></i>
-            </div>
-          </div>
-          
-          <!-- Fertilizer Card -->
-          <div class="feature-card bg-white p-6 rounded-xl card-shadow border border-gray-100 hover:border-leaf" 
-               onclick="redirectToFeature('fertilizer')">
-            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-              <i class="fas fa-seedling text-leaf text-xl"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-2">Fertilizer Recommendations</h4>
-            <p class="text-gray-600 text-sm">AI-powered fertilizer suggestions based on your soil and crop stage.</p>
-            <div class="mt-4 flex items-center text-leaf text-sm font-medium">
-              <span>Get recommendations</span>
-              <i class="fas fa-arrow-right ml-2"></i>
-            </div>
-          </div>
-          
-          <!-- Chat Card -->
-          <div class="feature-card bg-white p-6 rounded-xl card-shadow border border-gray-100 hover:border-leaf" 
-               onclick="redirectToFeature('chatbot')">
-            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-              <i class="fas fa-comments text-leaf text-xl"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-2">24/7 Chat Assistant</h4>
-            <p class="text-gray-600 text-sm">Ask questions in your local language and get instant farming advice.</p>
-            <div class="mt-4 flex items-center text-leaf text-sm font-medium">
-              <span>Start chatting</span>
-              <i class="fas fa-arrow-right ml-2"></i>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- HOW IT WORKS SECTION -->
-      <section id="how" class="py-20 bg-gradient-to-r from-green-50 to-white rounded-2xl p-8">
-        <h3 class="text-3xl font-bold text-center mb-12">How It Works</h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="text-center">
-            <div class="w-16 h-16 bg-leaf text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
-            <h4 class="font-bold text-lg mb-2">Create Your Profile</h4>
-            <p class="text-gray-600 text-sm">Tell us about your farm location, size, and primary crops.</p>
-          </div>
-          
-          <div class="text-center">
-            <div class="w-16 h-16 bg-leaf text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
-            <h4 class="font-bold text-lg mb-2">Get Personalized Advice</h4>
-            <p class="text-gray-600 text-sm">Receive crop-specific recommendations based on weather and soil data.</p>
-          </div>
-          
-          <div class="text-center">
-            <div class="w-16 h-16 bg-leaf text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">3</div>
-            <h4 class="font-bold text-lg mb-2">Chat for Instant Help</h4>
-            <p class="text-gray-600 text-sm">Ask questions anytime and get AI-powered farming guidance.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- ABOUT SECTION -->
-      <section id="about" class="py-20">
-        <div class="max-w-4xl mx-auto text-center">
-          <h3 class="text-3xl font-bold mb-4">About Smart Crop Advisory</h3>
-          <p class="text-gray-700 text-lg">
-            We're committed to empowering small and marginal farmers with data-driven, affordable solutions. 
-            Our platform combines AI technology with agricultural expertise to provide practical, 
-            localized advice that helps farmers make better decisions and improve their yields.
-          </p>
-        </div>
-      </section>
-
-      <!-- CTA SECTION - UPDATED WITH DARKER GREEN -->
-      <section class="cta-section py-20 mt-12 text-white rounded-2xl p-8">
-        <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div class="text-center md:text-left">
-            <h4 class="text-2xl font-bold mb-2">Ready to improve your crop decisions?</h4>
-            <p class="text-green-100 opacity-90 mt-2">Start with a free advisory plan — no special hardware needed.</p>
-          </div>
-          <div class="flex gap-3 flex-col sm:flex-row">
-            <a id="cta-get-started" href="login.html" class="px-5 py-3 rounded-md bg-white text-dark-green font-medium hover:bg-gray-100 transition-all text-center">
-              <span id="cta-button-text">Get started</span>
-            </a>
-            <a href="#contact" class="px-5 py-3 rounded-md border border-white text-white hover:bg-white/10 transition-all text-center">
-              Talk to us
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <!-- CONTACT SECTION -->
-      <section id="contact" class="py-20">
-        <div class="max-w-4xl mx-auto text-center">
-          <h3 class="text-3xl font-bold mb-6">Get in Touch</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="text-left">
-              <h4 class="font-bold text-lg mb-4">Contact Information</h4>
-              <div class="space-y-3">
-                <div class="flex items-start gap-3">
-                  <i class="fas fa-envelope text-leaf mt-1"></i>
-                  <div>
-                    <p class="font-medium">Email</p>
-                    <p class="text-gray-600">hello@smartcrop.example</p>
-                  </div>
+        <!-- FEATURES SECTION -->
+        <section id="features" class="py-20 mt-12">
+            <h3 class="text-3xl font-bold text-center mb-12 text-gray-800">{{ t('key_features', user_language) }}</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Weather Card -->
+                <div class="feature-card bg-white p-6 card-shadow border border-gray-200 hover:border-leaf" 
+                     onclick="redirectToFeature('weather')">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-cloud-sun text-leaf text-xl"></i>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2 text-gray-800">{{ t('feature_weather_title', user_language) }}</h4>
+                    <p class="text-gray-600 text-sm">{{ t('feature_weather_desc', user_language) }}</p>
+                    <div class="mt-4 flex items-center text-leaf text-sm font-medium">
+                        <span>{{ t('try_it_now', user_language) }}</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
                 </div>
-                <div class="flex items-start gap-3">
-                  <i class="fas fa-phone text-leaf mt-1"></i>
-                  <div>
-                    <p class="font-medium">Phone</p>
-                    <p class="text-gray-600">+91 98765 43210</p>
-                  </div>
+                
+                <!-- Fertilizer Card -->
+                <div class="feature-card bg-white p-6 card-shadow border border-gray-200 hover:border-leaf" 
+                     onclick="redirectToFeature('fertilizer')">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-seedling text-leaf text-xl"></i>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2 text-gray-800">{{ t('feature_fertilizer_title', user_language) }}</h4>
+                    <p class="text-gray-600 text-sm">{{ t('feature_fertilizer_desc', user_language) }}</p>
+                    <div class="mt-4 flex items-center text-leaf text-sm font-medium">
+                        <span>{{ t('get_recommendations', user_language) }}</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
                 </div>
-              </div>
+                
+                <!-- Chat Card -->
+                <div class="feature-card bg-white p-6 card-shadow border border-gray-200 hover:border-leaf" 
+                     onclick="redirectToFeature('chatbot')">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-comments text-leaf text-xl"></i>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2 text-gray-800">{{ t('feature_chat_title', user_language) }}</h4>
+                    <p class="text-gray-600 text-sm">{{ t('feature_chat_desc', user_language) }}</p>
+                    <div class="mt-4 flex items-center text-leaf text-sm font-medium">
+                        <span>{{ t('start_chatting', user_language) }}</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
             </div>
-            <div class="text-left">
-              <h4 class="font-bold text-lg mb-4">Availability</h4>
-              <div class="space-y-2">
-                <p class="text-gray-600">Monday - Friday: 9 AM - 6 PM</p>
-                <p class="text-gray-600">24/7 Chat Support Available</p>
-              </div>
+        </section>
+
+        <!-- HOW IT WORKS SECTION -->
+        <section id="how" class="py-20 bg-gradient-to-r from-green-50 to-white rounded-2xl p-8">
+            <h3 class="text-3xl font-bold text-center mb-12 text-gray-800">{{ t('how_it_works', user_language) }}</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-leaf text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
+                    <h4 class="font-bold text-lg mb-2 text-gray-800">{{ t('step1_title', user_language) }}</h4>
+                    <p class="text-gray-600 text-sm">{{ t('step1_desc', user_language) }}</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-leaf text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
+                    <h4 class="font-bold text-lg mb-2 text-gray-800">{{ t('step2_title', user_language) }}</h4>
+                    <p class="text-gray-600 text-sm">{{ t('step2_desc', user_language) }}</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-leaf text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">3</div>
+                    <h4 class="font-bold text-lg mb-2 text-gray-800">{{ t('step3_title', user_language) }}</h4>
+                    <p class="text-gray-600 text-sm">{{ t('step3_desc', user_language) }}</p>
+                </div>
             </div>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- FOOTER -->
-      <footer class="mt-12 py-8 text-gray-700 border-t">
-        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <h5 class="font-semibold text-lg mb-3">Smart Crop Advisory</h5>
-            <p class="mt-2 text-sm text-gray-600">Empowering small and marginal farmers with data-driven, low-cost decisions.</p>
-          </div>
-
-          <div>
-            <h5 class="font-semibold text-lg mb-3">Quick links</h5>
-            <ul class="space-y-2 text-sm">
-              <li><a class="hover:text-leaf hover:underline transition-all" href="/features.html">Features</a></li>
-              <li><a class="hover:text-leaf hover:underline transition-all" href="#how">How it works</a></li>
-              <li><a class="hover:text-leaf hover:underline transition-all" href="#about">About</a></li>
-              <li><a class="hover:text-leaf hover:underline transition-all" href="#contact">Contact</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h5 class="font-semibold text-lg mb-3">Follow Us</h5>
-            <div class="flex gap-3 mt-2">
-              <a href="#" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-green-100 transition-all">
-                <i class="fab fa-twitter text-gray-600"></i>
-              </a>
-              <a href="#" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-green-100 transition-all">
-                <i class="fab fa-facebook-f text-gray-600"></i>
-              </a>
-              <a href="#" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-green-100 transition-all">
-                <i class="fab fa-instagram text-gray-600"></i>
-              </a>
+        <!-- ABOUT SECTION -->
+        <section id="about" class="py-20">
+            <div class="max-w-4xl mx-auto text-center">
+                <h3 class="text-3xl font-bold mb-4 text-gray-800">{{ t('about_title', user_language) }}</h3>
+                <p class="text-gray-700 text-lg">
+                    {{ t('about_description', user_language) }}
+                </p>
             </div>
-          </div>
-        </div>
+        </section>
 
-        <div class="mt-8 text-center text-sm text-gray-500">
-          © 2025 Smart Crop Advisory — Built for small & marginal farmers.
-        </div>
-      </footer>
+        <!-- CTA SECTION - Keeping original dark green for contrast -->
+        <section class="cta-section py-20 mt-12 text-white rounded-2xl p-8">
+            <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="text-center md:text-left">
+                    <h4 class="text-2xl font-bold mb-2">{{ t('cta_title', user_language) }}</h4>
+                    <p class="text-green-100 opacity-90 mt-2">{{ t('cta_description', user_language) }}</p>
+                </div>
+                <div class="flex gap-3 flex-col sm:flex-row">
+                    <a id="cta-get-started" href="login.html" class="px-5 py-3 rounded-md bg-white text-dark-green font-medium hover:bg-gray-100 transition-all text-center">
+                        <span id="cta-button-text">{{ t('get_started', user_language) }}</span>
+                    </a>
+                    <a href="#contact" class="px-5 py-3 rounded-md border border-white text-white hover:bg-white/10 transition-all text-center">
+                        {{ t('talk_to_us', user_language) }}
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT SECTION -->
+        <section id="contact" class="py-20">
+            <div class="max-w-4xl mx-auto text-center">
+                <h3 class="text-3xl font-bold mb-6 text-gray-800">{{ t('contact_title', user_language) }}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="text-left">
+                        <h4 class="font-bold text-lg mb-4 text-gray-800">{{ t('contact_info', user_language) }}</h4>
+                        <div class="space-y-3">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-envelope text-leaf mt-1"></i>
+                                <div>
+                                    <p class="font-medium text-gray-700">{{ t('email', user_language) }}</p>
+                                    <p class="text-gray-600">hello@smartcrop.example</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-phone text-leaf mt-1"></i>
+                                <div>
+                                    <p class="font-medium text-gray-700">{{ t('phone', user_language) }}</p>
+                                    <p class="text-gray-600">+91 98765 43210</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-left">
+                        <h4 class="font-bold text-lg mb-4 text-gray-800">{{ t('availability', user_language) }}</h4>
+                        <div class="space-y-2">
+                            <p class="text-gray-600">{{ t('availability_weekdays', user_language) }}</p>
+                            <p class="text-gray-600">{{ t('availability_chat', user_language) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="mt-12 py-8 text-gray-700 border-t border-gray-200">
+            <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h5 class="font-semibold text-lg mb-3 text-gray-800">{{ t('app_name_short', user_language) }}</h5>
+                    <p class="mt-2 text-sm text-gray-600">{{ t('footer_description', user_language) }}</p>
+                </div>
+
+                <div>
+                    <h5 class="font-semibold text-lg mb-3 text-gray-800">{{ t('quick_links', user_language) }}</h5>
+                    <ul class="space-y-2 text-sm">
+                        <li><a class="hover:text-green-700 hover:underline transition-all text-gray-600" href="features.html">{{ t('features', user_language) }}</a></li>
+                        <li><a class="hover:text-green-700 hover:underline transition-all text-gray-600" href="#how">{{ t('how_it_works', user_language) }}</a></li>
+                        <li><a class="hover:text-green-700 hover:underline transition-all text-gray-600" href="#about">{{ t('about', user_language) }}</a></li>
+                        <li><a class="hover:text-green-700 hover:underline transition-all text-gray-600" href="#contact">{{ t('contact', user_language) }}</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h5 class="font-semibold text-lg mb-3 text-gray-800">{{ t('follow_us', user_language) }}</h5>
+                    <div class="flex gap-3 mt-2">
+                        <a href="#" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-green-100 transition-all">
+                            <i class="fab fa-twitter text-gray-600"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-green-100 transition-all">
+                            <i class="fab fa-facebook-f text-gray-600"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-green-100 transition-all">
+                            <i class="fab fa-instagram text-gray-600"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center text-sm text-gray-500">
+                © 2025 {{ t('app_name_short', user_language) }} — {{ t('footer_tagline', user_language) }}
+            </div>
+        </footer>
     </main>
 
     <!-- Chatbot Floating Button -->
     <a href="chatbot.html" class="fixed right-6 bottom-10 w-16 h-16 bg-leaf rounded-full shadow-lg flex items-center justify-center hover:bg-green-700 transition-all z-50 group">
-      <i class="fas fa-comments text-white text-2xl"></i>
-      <span class="absolute right-full mr-3 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-        Chat with Assistant
-      </span>
+        <i class="fas fa-comments text-white text-2xl"></i>
+        <span class="absolute right-full mr-3 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            {{ t('chat_with_assistant', user_language) }}
+        </span>
     </a>
-  </div>
+</div>
+{% endblock %}
 
-  <!-- JavaScript with Updated Functionalities -->
-  <script>
+{% block scripts %}
+<script>
+    // ========== TRANSLATIONS FOR JAVASCRIPT ==========
+    window.indexTranslations = {
+        welcome_user: "{{ t('welcome_user', user_language) }}",
+        logout: "{{ t('logout', user_language) }}",
+        go_to_dashboard: "{{ t('go_to_dashboard', user_language) }}",
+        get_personalized_advice: "{{ t('get_personalized_advice', user_language) }}",
+        get_started: "{{ t('get_started', user_language) }}",
+        login: "{{ t('login', user_language) }}",
+        signup: "{{ t('signup', user_language) }}",
+        chat_with_assistant: "{{ t('chat_with_assistant', user_language) }}"
+    };
+    
     // ========== CONFIGURATION ==========
     const API_BASE = 'http://localhost:5001';
     
-    // ========== SIMPLIFIED AUTH CHECK ==========
+    // ========== AUTH CHECK ==========
     async function checkAuthState() {
       try {
-        // First, check if we have session data in localStorage (for quick UI update)
         const userName = localStorage.getItem('user-name') || 'User';
         const userEmail = localStorage.getItem('user-email');
         
-        // Check with backend to verify actual login status
         try {
           const response = await fetch(`${API_BASE}/check-auth`, {
             method: 'GET',
-            credentials: 'include', // Important for Flask-Login sessions
-            headers: {
-              'Accept': 'application/json'
-            }
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
           });
           
           if (response.ok) {
             const data = await response.json();
             
             if (data.authenticated && data.user) {
-              // User is authenticated
-              console.log('User authenticated:', data.user);
-              
-              // Update localStorage with fresh data
               localStorage.setItem('session-authenticated', 'true');
               localStorage.setItem('is-logged-in', 'true');
               localStorage.setItem('user-name', data.user.username || userName);
               localStorage.setItem('user-email', data.user.email || userEmail);
               localStorage.setItem('user-id', data.user.id || '');
               
-              // Update UI with logout option
               updateAuthUI(true, data.user.username || userName);
               return;
             } else {
-              // User is not authenticated
-              console.log('User not authenticated');
               localStorage.removeItem('session-authenticated');
               localStorage.removeItem('is-logged-in');
               updateAuthUI(false);
             }
           }
         } catch (backendError) {
-          console.log('Backend auth check failed, using localStorage:', backendError);
-          
-          // Fallback: Check localStorage for previous session
-          const wasLoggedIn = localStorage.getItem('is-logged-in') === 'true' || 
-                            localStorage.getItem('session-authenticated') === 'true';
-          
-          if (wasLoggedIn && userEmail) {
-            // Assume still logged in (for offline/broken backend)
-            console.log('Using localStorage fallback for auth');
-            updateAuthUI(true, userName);
-          } else {
-            updateAuthUI(false);
-          }
+          console.log('Backend auth check failed:', backendError);
+          const wasLoggedIn = localStorage.getItem('is-logged-in') === 'true';
+          updateAuthUI(wasLoggedIn, wasLoggedIn ? userName : null);
         }
       } catch (error) {
         console.error('Auth check error:', error);
@@ -508,266 +442,92 @@
       const ctaButtonText = document.getElementById('cta-button-text');
       
       if (isLoggedIn) {
-        // User is logged in - Show welcome message and logout button
         authSection.innerHTML = `
           <div class="user-menu">
-            <span class="user-welcome">Welcome, ${userName}</span>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+            <span class="user-welcome">${window.indexTranslations.welcome_user}, ${userName}</span>
+            <button class="logout-btn" onclick="logout()">${window.indexTranslations.logout}</button>
           </div>
         `;
         
-        // Update get started buttons to go to dashboard
-        if (getStartedBtn) {
-          getStartedBtn.href = 'dashboard.html';
-        }
-        if (getStartedText) {
-          getStartedText.textContent = 'Go to Dashboard';
-        }
-        if (ctaGetStarted) {
-          ctaGetStarted.href = 'dashboard.html';
-        }
-        if (ctaButtonText) {
-          ctaButtonText.textContent = 'Go to Dashboard';
-        }
-        
-        console.log('UI updated: User is logged in');
+        if (getStartedBtn) getStartedBtn.href = 'dashboard.html';
+        if (getStartedText) getStartedText.textContent = window.indexTranslations.go_to_dashboard;
+        if (ctaGetStarted) ctaGetStarted.href = 'dashboard.html';
+        if (ctaButtonText) ctaButtonText.textContent = window.indexTranslations.go_to_dashboard;
       } else {
-        // User is logged out - Show login/signup buttons
         authSection.innerHTML = `
           <a href="login.html" class="px-4 py-2 rounded-md border border-green-600 text-green-600 hover:bg-green-50 transition-all font-medium">
-            Login
+            ${window.indexTranslations.login}
           </a>
           <a href="signup.html" class="px-4 py-2 rounded-md bg-leaf text-white hover:bg-green-700 transition-all font-medium">
-            Sign Up
+            ${window.indexTranslations.signup}
           </a>
         `;
         
-        // Reset get started buttons to go to login
-        if (getStartedBtn) {
-          getStartedBtn.href = 'login.html';
-        }
-        if (getStartedText) {
-          getStartedText.textContent = 'Get personalized advice';
-        }
-        if (ctaGetStarted) {
-          ctaGetStarted.href = 'login.html';
-        }
-        if (ctaButtonText) {
-          ctaButtonText.textContent = 'Get started';
-        }
-        
-        console.log('UI updated: User is logged out');
+        if (getStartedBtn) getStartedBtn.href = 'login.html';
+        if (getStartedText) getStartedText.textContent = window.indexTranslations.get_personalized_advice;
+        if (ctaGetStarted) ctaGetStarted.href = 'login.html';
+        if (ctaButtonText) ctaButtonText.textContent = window.indexTranslations.get_started;
       }
     }
 
-    // ========== LOGOUT FUNCTION ==========
     async function logout() {
       try {
-        // Show loading on logout button
-        const logoutBtns = document.querySelectorAll('.logout-btn');
-        logoutBtns.forEach(btn => {
-          const originalText = btn.textContent;
-          btn.innerHTML = '<div class="spinner"></div>';
-          btn.disabled = true;
-          btn.dataset.originalText = originalText;
-        });
-        
-        // Clear localStorage first for immediate UI update
-        localStorage.removeItem('session-authenticated');
-        localStorage.removeItem('is-logged-in');
-        localStorage.removeItem('user-name');
-        localStorage.removeItem('user-email');
-        localStorage.removeItem('user-id');
-        localStorage.removeItem('profile_completed');
-        localStorage.removeItem('user_location');
-        localStorage.removeItem('primary_crop');
-        localStorage.removeItem('farm_size');
-        localStorage.removeItem('redirect-after-login');
-        
-        // Update UI immediately
+        localStorage.clear();
         updateAuthUI(false);
         
-        // Try to logout from backend (but don't wait if it fails)
         try {
-          await fetch(`${API_BASE}/logout`, {
-            method: 'POST',
-            credentials: 'include'
-          });
-        } catch (backendError) {
-          console.log('Backend logout failed:', backendError);
-          // Continue anyway
-        }
+          await fetch(`${API_BASE}/logout`, { method: 'POST', credentials: 'include' });
+        } catch (e) {}
         
-        // Redirect to home page
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 500);
-        
+        setTimeout(() => window.location.href = 'index.html', 500);
       } catch (error) {
-        console.error('Logout error:', error);
-        
-        // Still clear localStorage and redirect
         localStorage.clear();
         window.location.href = 'index.html';
       }
     }
 
-    // ========== FEATURE REDIRECTION ==========
     function redirectToFeature(featureType) {
-      // Check if user is logged in
-      const isLoggedIn = localStorage.getItem('is-logged-in') === 'true' || 
-                         localStorage.getItem('session-authenticated') === 'true';
-      
+      const isLoggedIn = localStorage.getItem('is-logged-in') === 'true';
       let targetUrl = '';
       
-      // Map feature types to their pages
       switch(featureType) {
-        case 'weather':
-          targetUrl = isLoggedIn ? 'weather.html' : 'login.html';
-          break;
-        case 'fertilizer':
-          targetUrl = isLoggedIn ? 'fertilizer.html' : 'login.html';
-          break;
-        case 'chatbot':
-          targetUrl = isLoggedIn ? 'chatbot.html' : 'login.html';
-          break;
-        default:
-          targetUrl = isLoggedIn ? 'dashboard.html' : 'login.html';
+        case 'weather': targetUrl = isLoggedIn ? 'weather.html' : 'login.html'; break;
+        case 'fertilizer': targetUrl = isLoggedIn ? 'fertilizer.html' : 'login.html'; break;
+        case 'chatbot': targetUrl = isLoggedIn ? 'chatbot.html' : 'login.html'; break;
+        default: targetUrl = isLoggedIn ? 'dashboard.html' : 'login.html';
       }
       
-      // Store where to redirect after login (if needed)
-      if (!isLoggedIn) {
-        localStorage.setItem('redirect-after-login', featureType);
-      }
-      
-      console.log(`Redirecting to: ${targetUrl} (logged in: ${isLoggedIn})`);
+      if (!isLoggedIn) localStorage.setItem('redirect-after-login', featureType);
       window.location.href = targetUrl;
     }
 
-    // ========== LANGUAGE MANAGEMENT ==========
-    function getCurrentLanguage() {
-      return localStorage.getItem('user-language') || 'en';
-    }
-
-    function setCurrentLanguage(lang) {
-      localStorage.setItem('user-language', lang);
-      updateLanguageUI(lang);
-    }
-
-    function updateLanguageUI(lang) {
-      // Update current language display
-      const currentLangElement = document.getElementById('current-lang');
-      if (currentLangElement) {
-        currentLangElement.textContent = lang.toUpperCase();
-      }
-      
-      // Update mobile select
-      const mobileSelect = document.getElementById('mobile-language-select');
-      if (mobileSelect) {
-        mobileSelect.value = lang;
-      }
-      
-      // Update dropdown active states
-      document.querySelectorAll('.lang-option').forEach(option => {
-        if (option.dataset.lang === lang) {
-          option.classList.add('active');
-        } else {
-          option.classList.remove('active');
-        }
-      });
-      
-      console.log('Language updated to:', lang);
-    }
-
-    // ========== SMOOTH SCROLLING ==========
     function setupSmoothScroll() {
       document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
           const href = this.getAttribute('href');
-          
-          // Only handle anchor links, not page links
           if (href.startsWith('#') && href.length > 1) {
             e.preventDefault();
             const target = document.querySelector(href);
-            if (target) {
-              target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-              });
-            }
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         });
       });
     }
 
-    // ========== INITIALIZATION ==========
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('Initializing index page...');
-      
-      // Initialize language
-      const currentLang = getCurrentLanguage();
-      updateLanguageUI(currentLang);
-      
-      // Check authentication status
       checkAuthState();
-      
-      // Set up smooth scrolling
       setupSmoothScroll();
       
-      // Language dropdown toggle
-      const languageToggle = document.getElementById('language-toggle');
-      if (languageToggle) {
-        languageToggle.addEventListener('click', function(e) {
-          e.stopPropagation();
-          const dropdown = document.getElementById('language-dropdown');
-          if (dropdown) {
-            dropdown.classList.toggle('show');
-          }
-        });
-      }
-      
-      // Language selection
-      document.querySelectorAll('.lang-option').forEach(option => {
-        option.addEventListener('click', function(e) {
-          e.stopPropagation();
-          const lang = this.dataset.lang;
-          setCurrentLanguage(lang);
-          const dropdown = document.getElementById('language-dropdown');
-          if (dropdown) {
-            dropdown.classList.remove('show');
-          }
-        });
-      });
-      
-      // Mobile language select
-      const mobileSelect = document.getElementById('mobile-language-select');
-      if (mobileSelect) {
-        mobileSelect.addEventListener('change', function() {
-          setCurrentLanguage(this.value);
-        });
-      }
-      
-      // Close dropdown when clicking outside
-      document.addEventListener('click', function() {
-        const dropdown = document.getElementById('language-dropdown');
-        if (dropdown) {
-          dropdown.classList.remove('show');
-        }
-      });
-      
-      // Feature card click handlers (already set via onclick, but add for safety)
       document.querySelectorAll('.feature-card').forEach(card => {
         card.addEventListener('click', function() {
-          const featureType = this.getAttribute('onclick').match(/'(\w+)'/)[1];
-          redirectToFeature(featureType);
+          const match = this.getAttribute('onclick')?.match(/'(\w+)'/);
+          if (match) redirectToFeature(match[1]);
         });
       });
     });
 
-    // ========== GLOBAL EXPORTS ==========
     window.redirectToFeature = redirectToFeature;
     window.logout = logout;
     window.checkAuthState = checkAuthState;
-  </script>
-</body>
-</html>
+</script>
+{% endblock %}
