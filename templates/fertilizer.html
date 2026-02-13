@@ -1,906 +1,961 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fertilizer Recommendations | Smart Crop Advisory</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --leaf-green: #16a34a;
-            --fresh-green: #22c55e;
-            --earth-brown: #92400e;
-            --soil-brown: #854d0e;
-            --water-blue: #0ea5e9;
-        }
-        
-        .bg-leaf { background-color: var(--leaf-green); }
-        .bg-earth { background-color: var(--earth-brown); }
-        .bg-soil { background-color: var(--soil-brown); }
-        .bg-water { background-color: var(--water-blue); }
-        
-        .text-leaf { color: var(--leaf-green); }
-        .text-earth { color: var(--earth-brown); }
-        .text-soil { color: var(--soil-brown); }
-        .text-water { color: var(--water-blue); }
-        
-        .card-shadow {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        
-        .transition-smooth {
-            transition: all 0.3s ease-in-out;
-        }
-        
-        .gradient-earth {
-            background: linear-gradient(135deg, #92400e 0%, #854d0e 100%);
-        }
-        
-        .gradient-leaf {
-            background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
-        }
-        
-        .pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
-        .loading-dots:after {
-            content: '.';
-            animation: dots 1.5s steps(5, end) infinite;
-        }
-        
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60% { content: '...'; }
-            80%, 100% { content: ''; }
-        }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white border-b border-gray-200 px-4 py-3 md:px-6 md:py-4">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center">
-                <a href="dashboard.html" class="flex items-center text-gray-700 hover:text-leaf transition-smooth mr-4">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    <span class="hidden sm:inline">Dashboard</span>
-                </a>
-                <div class="ml-4">
-                    <h1 class="text-lg md:text-xl font-bold text-gray-800 flex items-center">
-                        <i class="fas fa-seedling text-leaf mr-2"></i>
-                        Fertilizer Recommendations
-                    </h1>
-                    <p class="text-xs text-gray-600">AI-powered personalized fertilizer advice</p>
-                </div>
-            </div>
-            
-            <div class="flex items-center space-x-3">
-                <button onclick="generateRecommendation()" id="generateBtn" class="px-4 py-2 bg-leaf text-white rounded-lg hover:bg-green-700 transition-smooth flex items-center">
-                    <i class="fas fa-magic mr-2"></i>
-                    <span>Generate New</span>
-                </button>
+<!-- templates/fertilizer.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ t('fertilizer_page_title', user_language) }} - {{ t('app_name', user_language) }}{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --leaf-green: #16a34a;
+        --fresh-green: #22c55e;
+        --earth-brown: #92400e;
+        --soil-brown: #854d0e;
+        --water-blue: #0ea5e9;
+    }
+    
+    .bg-leaf { background-color: var(--leaf-green); }
+    .bg-earth { background-color: var(--earth-brown); }
+    .bg-soil { background-color: var(--soil-brown); }
+    .bg-water { background-color: var(--water-blue); }
+    
+    .text-leaf { color: var(--leaf-green); }
+    .text-earth { color: var(--earth-brown); }
+    .text-soil { color: var(--soil-brown); }
+    .text-water { color: var(--water-blue); }
+    
+    .card-shadow {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .transition-smooth {
+        transition: all 0.3s ease-in-out;
+    }
+    
+    .gradient-earth {
+        background: linear-gradient(135deg, #92400e 0%, #854d0e 100%);
+    }
+    
+    .gradient-leaf {
+        background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+    }
+    
+    .pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .loading-dots:after {
+        content: '.';
+        animation: dots 1.5s steps(5, end) infinite;
+    }
+    
+    @keyframes dots {
+        0%, 20% { content: '.'; }
+        40% { content: '..'; }
+        60% { content: '...'; }
+        80%, 100% { content: ''; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Navigation -->
+<nav class="bg-white border-b border-gray-200 px-4 py-3 md:px-6 md:py-4">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center">
+            <a href="/dashboard" class="flex items-center text-gray-700 hover:text-leaf transition-smooth mr-4">
+                <i class="fas fa-arrow-left mr-2"></i>
+                <span class="hidden sm:inline">{{ t('back_to_dashboard', user_language) }}</span>
+            </a>
+            <div class="ml-4">
+                <h1 class="text-lg md:text-xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-seedling text-leaf mr-2"></i>
+                    {{ t('fertilizer_page_title', user_language) }}
+                </h1>
+                <p class="text-xs text-gray-600">{{ t('fertilizer_subtitle', user_language) }}</p>
             </div>
         </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="p-4 md:p-6 max-w-7xl mx-auto">
         
-        <!-- Hero Section -->
-        <div class="gradient-earth rounded-2xl p-6 md:p-8 mb-8 text-white card-shadow">
-            <div class="flex flex-col md:flex-row items-center justify-between">
-                <div class="md:w-2/3 mb-6 md:mb-0">
-                    <h2 class="text-2xl md:text-3xl font-bold mb-3">🌱 Smart Fertilizer Advisor</h2>
-                    <p class="text-lg opacity-90 mb-4">Get personalized fertilizer recommendations based on your crop, soil, location, and current weather conditions.</p>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">AI-Powered</span>
-                        <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">Real-time Data</span>
-                        <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">Cost Optimized</span>
-                        <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">Sustainable</span>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <div class="text-5xl mb-2">🧪</div>
-                    <button onclick="scrollToForm()" class="bg-white text-earth font-bold px-6 py-3 rounded-lg hover:bg-gray-100 transition-smooth">
-                        <i class="fas fa-edit mr-2"></i>
-                        Customize
-                    </button>
-                </div>
-            </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="generateRecommendation()" id="generateBtn" class="px-4 py-2 bg-leaf text-white rounded-lg hover:bg-green-700 transition-smooth flex items-center">
+                <i class="fas fa-magic mr-2"></i>
+                <span>{{ t('generate_new', user_language) }}</span>
+            </button>
         </div>
+    </div>
+</nav>
 
-        <!-- User Profile Summary -->
-        <div id="userProfile" class="bg-white rounded-xl p-5 mb-8 card-shadow">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-800">Your Farm Profile</h3>
-                <button onclick="editProfile()" class="text-sm text-water hover:text-blue-700">
-                    <i class="fas fa-edit mr-1"></i> Edit
-                </button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <div class="flex items-center mb-2">
-                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-tractor text-leaf"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs text-gray-500">Crop</div>
-                            <div id="userCrop" class="font-bold text-gray-800">Loading...</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <div class="flex items-center mb-2">
-                        <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-map-marker-alt text-earth"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs text-gray-500">Location</div>
-                            <div id="userLocation" class="font-bold text-gray-800">Loading...</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <div class="flex items-center mb-2">
-                        <div class="w-10 h-10 bg-brown-100 rounded-lg flex items-center justify-center mr-3" style="background-color: #f5e8d3;">
-                            <i class="fas fa-mountain text-soil"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs text-gray-500">Soil Type</div>
-                            <div id="userSoil" class="font-bold text-gray-800">Loading...</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <div class="flex items-center mb-2">
-                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-tint text-water"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs text-gray-500">Irrigation</div>
-                            <div id="userIrrigation" class="font-bold text-gray-800">Loading...</div>
-                        </div>
-                    </div>
+<!-- Main Content -->
+<main class="p-4 md:p-6 max-w-7xl mx-auto">
+    
+    <!-- Hero Section -->
+    <div class="gradient-earth rounded-2xl p-6 md:p-8 mb-8 text-white card-shadow">
+        <div class="flex flex-col md:flex-row items-center justify-between">
+            <div class="md:w-2/3 mb-6 md:mb-0">
+                <h2 class="text-2xl md:text-3xl font-bold mb-3">{{ t('smart_fertilizer_advisor', user_language) }}</h2>
+                <p class="text-lg opacity-90 mb-4">{{ t('hero_description', user_language) }}</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">{{ t('ai_powered', user_language) }}</span>
+                    <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">{{ t('real_time_data', user_language) }}</span>
+                    <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">{{ t('cost_optimized', user_language) }}</span>
+                    <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">{{ t('sustainable', user_language) }}</span>
                 </div>
             </div>
-        </div>
-
-        <!-- Recommendation Form -->
-        <div class="bg-white rounded-xl p-6 mb-8 card-shadow" id="customizationForm">
-            <h3 class="text-xl font-bold text-gray-800 mb-6">Customize Your Recommendation</h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <!-- Left Column -->
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Crop Type</label>
-                        <div class="relative">
-                            <select id="cropSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-leaf focus:border-leaf transition-smooth appearance-none bg-white">
-                                <option value="">Select your crop</option>
-                                <option value="Rice">Rice</option>
-                                <option value="Wheat">Wheat</option>
-                                <option value="Maize">Maize</option>
-                                <option value="Cotton">Cotton</option>
-                                <option value="Sugarcane">Sugarcane</option>
-                                <option value="Groundnut">Groundnut</option>
-                                <option value="Soybean">Soybean</option>
-                                <option value="Vegetables">Vegetables</option>
-                                <option value="Fruits">Fruits</option>
-                                <option value="Pulses">Pulses</option>
-                                <option value="Oilseeds">Oilseeds</option>
-                            </select>
-                            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                <i class="fas fa-chevron-down text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Soil Type</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <button onclick="selectSoil('Clay')" class="soil-btn py-3 px-4 border rounded-lg text-center transition-smooth" data-soil="Clay">
-                                <i class="fas fa-water text-water text-lg mb-1 block"></i>
-                                <div class="font-medium">Clay</div>
-                                <div class="text-xs text-gray-500">Heavy, retains water</div>
-                            </button>
-                            <button onclick="selectSoil('Sandy')" class="soil-btn py-3 px-4 border rounded-lg text-center transition-smooth" data-soil="Sandy">
-                                <i class="fas fa-sun text-yellow-500 text-lg mb-1 block"></i>
-                                <div class="font-medium">Sandy</div>
-                                <div class="text-xs text-gray-500">Light, drains fast</div>
-                            </button>
-                            <button onclick="selectSoil('Loamy')" class="soil-btn py-3 px-4 border rounded-lg text-center transition-smooth" data-soil="Loamy">
-                                <i class="fas fa-seedling text-leaf text-lg mb-1 block"></i>
-                                <div class="font-medium">Loamy</div>
-                                <div class="text-xs text-gray-500">Ideal mix</div>
-                            </button>
-                            <button onclick="selectSoil('Silt')" class="soil-btn py-3 px-4 border rounded-lg text-center transition-smooth" data-soil="Silt">
-                                <i class="fas fa-water text-blue-400 text-lg mb-1 block"></i>
-                                <div class="font-medium">Silt</div>
-                                <div class="text-xs text-gray-500">Fine, fertile</div>
-                            </button>
-                        </div>
-                        <input type="hidden" id="soilType" value="">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Growth Stage</label>
-                        <div class="flex space-x-3 overflow-x-auto pb-2">
-                            <button onclick="selectStage('Seedling')" class="stage-btn flex-shrink-0 px-4 py-2 border rounded-lg transition-smooth">
-                                <div class="text-center">
-                                    <div class="text-lg">🌱</div>
-                                    <div class="text-sm font-medium">Seedling</div>
-                                </div>
-                            </button>
-                            <button onclick="selectStage('Vegetative')" class="stage-btn flex-shrink-0 px-4 py-2 border rounded-lg transition-smooth">
-                                <div class="text-center">
-                                    <div class="text-lg">🌿</div>
-                                    <div class="text-sm font-medium">Vegetative</div>
-                                </div>
-                            </button>
-                            <button onclick="selectStage('Flowering')" class="stage-btn flex-shrink-0 px-4 py-2 border rounded-lg transition-smooth">
-                                <div class="text-center">
-                                    <div class="text-lg">🌼</div>
-                                    <div class="text-sm font-medium">Flowering</div>
-                                </div>
-                            </button>
-                            <button onclick="selectStage('Fruiting')" class="stage-btn flex-shrink-0 px-4 py-2 border rounded-lg transition-smooth">
-                                <div class="text-center">
-                                    <div class="text-lg">🍅</div>
-                                    <div class="text-sm font-medium">Fruiting</div>
-                                </div>
-                            </button>
-                            <button onclick="selectStage('Maturity')" class="stage-btn flex-shrink-0 px-4 py-2 border rounded-lg transition-smooth">
-                                <div class="text-center">
-                                    <div class="text-lg">🌾</div>
-                                    <div class="text-sm font-medium">Maturity</div>
-                                </div>
-                            </button>
-                        </div>
-                        <input type="hidden" id="growthStage" value="">
-                    </div>
-                </div>
-                
-                <!-- Right Column -->
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Farm Size (acres)</label>
-                        <div class="flex items-center">
-                            <input type="range" id="farmSize" min="0.5" max="100" step="0.5" value="5" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                            <div class="ml-4 w-24">
-                                <input type="number" id="farmSizeInput" min="0.5" max="100" step="0.5" value="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center">
-                            </div>
-                            <span class="ml-2 text-gray-600">acres</span>
-                        </div>
-                        <div class="text-xs text-gray-500 mt-2">Adjust based on your farm area</div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Budget Range (₹)</label>
-                        <div class="grid grid-cols-3 gap-3">
-                            <button onclick="selectBudget('low')" class="budget-btn py-3 border rounded-lg text-center transition-smooth">
-                                <div class="font-medium">Low</div>
-                                <div class="text-xs text-gray-500">₹ 2,000-5,000</div>
-                            </button>
-                            <button onclick="selectBudget('medium')" class="budget-btn py-3 border rounded-lg text-center transition-smooth">
-                                <div class="font-medium">Medium</div>
-                                <div class="text-xs text-gray-500">₹ 5,000-15,000</div>
-                            </button>
-                            <button onclick="selectBudget('high')" class="budget-btn py-3 border rounded-lg text-center transition-smooth">
-                                <div class="font-medium">High</div>
-                                <div class="text-xs text-gray-500">₹ 15,000+</div>
-                            </button>
-                        </div>
-                        <input type="hidden" id="budgetRange" value="medium">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Special Requirements</label>
-                        <div class="space-y-2">
-                            <label class="flex items-center">
-                                <input type="checkbox" id="organicPreference" class="rounded text-leaf focus:ring-leaf">
-                                <span class="ml-2 text-gray-700">Prefer organic options</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" id="waterSaving" class="rounded text-leaf focus:ring-leaf">
-                                <span class="ml-2 text-gray-700">Water-saving methods</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" id="quickResults" class="rounded text-leaf focus:ring-leaf">
-                                <span class="ml-2 text-gray-700">Quick results needed</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" id="sustainable" class="rounded text-leaf focus:ring-leaf">
-                                <span class="ml-2 text-gray-700">Sustainable farming</span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
-                        <textarea id="additionalNotes" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-leaf focus:border-leaf transition-smooth" placeholder="Any specific issues, previous fertilizer used, pest problems, etc..."></textarea>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex justify-center">
-                <button onclick="generateRecommendation()" class="px-8 py-3 gradient-leaf text-white rounded-lg hover:opacity-90 transition-smooth font-bold text-lg flex items-center">
-                    <i class="fas fa-brain mr-2"></i>
-                    Generate AI Recommendation
-                </button>
-            </div>
-        </div>
-
-        <!-- Loading State -->
-        <div id="loadingState" class="hidden bg-white rounded-xl p-8 mb-8 card-shadow">
             <div class="text-center">
-                <div class="text-4xl text-leaf mb-4">
-                    <i class="fas fa-cogs fa-spin"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Analyzing Your Farm Data</h3>
-                <p class="text-gray-600 mb-6">Our AI is creating personalized fertilizer recommendations based on your inputs and current conditions<span class="loading-dots"></span></p>
-                
-                <div class="max-w-md mx-auto">
-                    <div class="flex justify-between text-sm text-gray-500 mb-2">
-                        <span>Collecting data</span>
-                        <span>75%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        <div class="bg-leaf h-2.5 rounded-full pulse" style="width: 75%"></div>
-                    </div>
-                    
-                    <div class="mt-6 grid grid-cols-3 gap-4">
-                        <div class="text-center p-3 bg-gray-50 rounded-lg">
-                            <div class="text-earth text-lg mb-1"><i class="fas fa-seedling"></i></div>
-                            <div class="text-xs">Soil Analysis</div>
-                        </div>
-                        <div class="text-center p-3 bg-gray-50 rounded-lg">
-                            <div class="text-earth text-lg mb-1"><i class="fas fa-cloud-sun"></i></div>
-                            <div class="text-xs">Weather Check</div>
-                        </div>
-                        <div class="text-center p-3 bg-gray-50 rounded-lg">
-                            <div class="text-earth text-lg mb-1"><i class="fas fa-robot"></i></div>
-                            <div class="text-xs">AI Processing</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Results Section -->
-        <div id="resultsSection" class="hidden">
-            <!-- Summary Card -->
-            <div class="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-6 mb-8 card-shadow">
-                <div class="flex flex-col md:flex-row items-center justify-between">
-                    <div class="mb-4 md:mb-0 md:w-2/3">
-                        <h3 class="text-xl font-bold text-gray-800 mb-2">✨ Your Personalized Fertilizer Plan</h3>
-                        <p class="text-gray-700 mb-3" id="planSummary">Optimized for your specific conditions with real-time weather considerations.</p>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="bg-white px-3 py-1 rounded-full text-sm text-green-700 border border-green-200">Ready to Apply</span>
-                            <span class="bg-white px-3 py-1 rounded-full text-sm text-blue-700 border border-blue-200" id="weatherStatus">Weather-adjusted</span>
-                            <span class="bg-white px-3 py-1 rounded-full text-sm text-purple-700 border border-purple-200" id="costRange">Cost-effective</span>
-                        </div>
-                    </div>
-                    <div class="flex space-x-3">
-                        <button onclick="downloadPlan()" class="px-4 py-2 bg-white border border-leaf text-leaf rounded-lg hover:bg-green-50 transition-smooth">
-                            <i class="fas fa-download mr-2"></i>PDF
-                        </button>
-                        <button onclick="sharePlan()" class="px-4 py-2 bg-leaf text-white rounded-lg hover:bg-green-700 transition-smooth">
-                            <i class="fas fa-share-alt mr-2"></i>Share
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Recommendations -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                <!-- NPK Recommendation -->
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-atom text-red-600 text-xl"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-gray-800">NPK Recommendation</h4>
-                            <div class="text-xs text-gray-500">Nitrogen-Phosphorus-Potassium</div>
-                        </div>
-                    </div>
-                    
-                    <div class="text-center mb-6">
-                        <div class="text-4xl font-bold text-gray-800 mb-2" id="npkRatio">--:--:--</div>
-                        <div class="text-sm text-gray-600">Optimal ratio for your crop</div>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <div class="flex justify-between text-sm mb-1">
-                                <span class="text-gray-700">Nitrogen (N)</span>
-                                <span class="font-medium" id="nitrogenAmount">-- kg/acre</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="bg-red-500 h-2 rounded-full" id="nitrogenBar" style="width: 60%"></div>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1" id="nitrogenRole">For leaf growth and green color</div>
-                        </div>
-                        
-                        <div>
-                            <div class="flex justify-between text-sm mb-1">
-                                <span class="text-gray-700">Phosphorus (P)</span>
-                                <span class="font-medium" id="phosphorusAmount">-- kg/acre</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="bg-blue-500 h-2 rounded-full" id="phosphorusBar" style="width: 40%"></div>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1" id="phosphorusRole">For root development and flowering</div>
-                        </div>
-                        
-                        <div>
-                            <div class="flex justify-between text-sm mb-1">
-                                <span class="text-gray-700">Potassium (K)</span>
-                                <span class="font-medium" id="potassiumAmount">-- kg/acre</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="bg-yellow-500 h-2 rounded-full" id="potassiumBar" style="width: 50%"></div>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1" id="potassiumRole">For disease resistance and quality</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Application Schedule -->
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-calendar-alt text-blue-600 text-xl"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-gray-800">Application Schedule</h4>
-                            <div class="text-xs text-gray-500">Timing and quantities</div>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4" id="scheduleList">
-                        <!-- Will be populated by JavaScript -->
-                        <div class="text-center py-8 text-gray-400">
-                            <i class="fas fa-spinner fa-spin text-2xl mb-3"></i>
-                            <div>Loading schedule...</div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6 pt-4 border-t border-gray-100">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <div class="text-sm text-gray-500">Total Required</div>
-                                <div class="text-xl font-bold text-gray-800" id="totalFertilizer">-- kg</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-sm text-gray-500">Estimated Cost</div>
-                                <div class="text-xl font-bold text-green-600" id="estimatedCost">₹ --</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recommended Products -->
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-shopping-bag text-green-600 text-xl"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-gray-800">Recommended Products</h4>
-                            <div class="text-xs text-gray-500">Trusted brands and alternatives</div>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4 mb-6" id="productList">
-                        <!-- Will be populated by JavaScript -->
-                        <div class="text-center py-8 text-gray-400">
-                            <i class="fas fa-spinner fa-spin text-2xl mb-3"></i>
-                            <div>Loading products...</div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <div class="flex items-start">
-                            <i class="fas fa-lightbulb text-yellow-500 text-lg mr-3 mt-1"></i>
-                            <div>
-                                <div class="font-medium text-yellow-800 mb-1">Pro Tip</div>
-                                <div class="text-sm text-yellow-700" id="proTip">Check local availability and compare prices before purchase.</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Detailed Sections -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <!-- Organic Alternatives -->
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <h4 class="font-bold text-gray-800 mb-4 flex items-center">
-                        <i class="fas fa-leaf text-leaf mr-2"></i>
-                        Organic & Sustainable Alternatives
-                    </h4>
-                    
-                    <div class="space-y-4" id="organicList">
-                        <!-- Will be populated by JavaScript -->
-                        <div class="text-center py-4 text-gray-400">
-                            Loading organic options...
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6 pt-4 border-t border-gray-100">
-                        <div class="text-sm text-gray-600">
-                            <i class="fas fa-info-circle text-water mr-1"></i>
-                            <span id="organicNote">Organic options improve soil health long-term</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Government Schemes -->
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <h4 class="font-bold text-gray-800 mb-4 flex items-center">
-                        <i class="fas fa-rupee-sign text-green-600 mr-2"></i>
-                        Government Subsidies & Schemes
-                    </h4>
-                    
-                    <div class="space-y-4" id="schemesList">
-                        <!-- Will be populated by JavaScript -->
-                        <div class="text-center py-4 text-gray-400">
-                            Loading schemes...
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6 pt-4 border-t border-gray-100">
-                        <a href="#" class="text-water hover:text-blue-700 text-sm font-medium">
-                            <i class="fas fa-external-link-alt mr-1"></i>
-                            Apply for subsidies online
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="bg-white rounded-xl p-6 card-shadow">
-                <h4 class="font-bold text-gray-800 mb-6">Ready to Implement?</h4>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button onclick="setReminder()" class="p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-smooth text-center">
-                        <div class="text-blue-600 text-2xl mb-2">
-                            <i class="fas fa-bell"></i>
-                        </div>
-                        <div class="font-medium text-gray-800 mb-1">Set Reminder</div>
-                        <div class="text-sm text-gray-600">Get application reminders</div>
-                    </button>
-                    
-                    <button onclick="askExpert()" class="p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-smooth text-center">
-                        <div class="text-leaf text-2xl mb-2">
-                            <i class="fas fa-user-tie"></i>
-                        </div>
-                        <div class="font-medium text-gray-800 mb-1">Ask Expert</div>
-                        <div class="text-sm text-gray-600">Chat with agricultural expert</div>
-                    </button>
-                    
-                    <button onclick="comparePrices()" class="p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-smooth text-center">
-                        <div class="text-purple-600 text-2xl mb-2">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="font-medium text-gray-800 mb-1">Compare Prices</div>
-                        <div class="text-sm text-gray-600">Check local market rates</div>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Disclaimer -->
-            <div class="mt-8 text-center text-xs text-gray-500">
-                <p><i class="fas fa-exclamation-circle mr-1"></i> Recommendations are AI-generated and should be verified with local agricultural experts. Actual requirements may vary based on soil tests and local conditions.</p>
-            </div>
-        </div>
-
-        <!-- Error State -->
-        <div id="errorState" class="hidden bg-white rounded-xl p-8 mb-8 card-shadow">
-            <div class="text-center">
-                <div class="text-4xl text-red-500 mb-4">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Unable to Generate Recommendations</h3>
-                <p class="text-gray-600 mb-6" id="errorMessage">There was an error processing your request. Please try again.</p>
-                <button onclick="retryGeneration()" class="px-6 py-3 bg-leaf text-white rounded-lg hover:bg-green-700 transition-smooth">
-                    <i class="fas fa-redo mr-2"></i>
-                    Try Again
+                <div class="text-5xl mb-2">🧪</div>
+                <button onclick="scrollToForm()" class="bg-white text-earth font-bold px-6 py-3 rounded-lg hover:bg-gray-100 transition-smooth">
+                    <i class="fas fa-edit mr-2"></i>
+                    {{ t('customize_button', user_language) }}
                 </button>
             </div>
         </div>
-    </main>
+    </div>
 
-    <!-- Chatbot Modal -->
-    <div id="chatbotModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-xl w-full max-w-2xl card-shadow">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold text-gray-800">💬 Ask Fertilizer Expert</h2>
-                    <button onclick="hideChatbot()" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="h-96 overflow-y-auto mb-4 p-4 border rounded-lg" id="chatMessages">
-                    <div class="text-center text-gray-500 py-8">
-                        <i class="fas fa-robot text-3xl mb-3 text-leaf"></i>
-                        <p>Ask me anything about fertilizer application!</p>
+    <!-- User Profile Summary -->
+    <div id="userProfile" class="bg-white rounded-xl p-5 mb-8 card-shadow">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-800">{{ t('your_farm_profile', user_language) }}</h3>
+            <button onclick="editProfile()" class="text-sm text-water hover:text-blue-700">
+                <i class="fas fa-edit mr-1"></i> {{ t('edit_profile', user_language) }}
+            </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center mb-2">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-tractor text-leaf"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500">{{ t('crop_label', user_language) }}</div>
+                        <div id="userCrop" class="font-bold text-gray-800">{{ t('loading', user_language) }}</div>
                     </div>
                 </div>
-                <div class="flex">
-                    <input type="text" id="chatInput" class="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-leaf focus:border-leaf" placeholder="Type your question...">
-                    <button onclick="sendChatMessage()" class="px-6 bg-leaf text-white rounded-r-lg hover:bg-green-700">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
+            </div>
+            
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center mb-2">
+                    <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-map-marker-alt text-earth"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500">{{ t('location_label', user_language) }}</div>
+                        <div id="userLocation" class="font-bold text-gray-800">{{ t('loading', user_language) }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center mb-2">
+                    <div class="w-10 h-10 bg-brown-100 rounded-lg flex items-center justify-center mr-3" style="background-color: #f5e8d3;">
+                        <i class="fas fa-mountain text-soil"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500">{{ t('soil_type_label', user_language) }}</div>
+                        <div id="userSoil" class="font-bold text-gray-800">{{ t('loading', user_language) }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center mb-2">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-tint text-water"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500">{{ t('irrigation_label', user_language) }}</div>
+                        <div id="userIrrigation" class="font-bold text-gray-800">{{ t('loading', user_language) }}</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript -->
-    <script>
-        // Global variables
-        let currentUserData = null;
-        let currentRecommendation = null;
-        let chatHistory = [];
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadUserProfile();
-            setupEventListeners();
-            initializeForm();
-        });
-
-        // ========== USER PROFILE LOADING ==========
-        function loadUserProfile() {
-            try {
-                // Get user data from localStorage (from dashboard)
-                const userName = localStorage.getItem('user-name') || 'Farmer';
-                const userLocation = localStorage.getItem('user_location') || 'Location not set';
-                const userCrop = localStorage.getItem('primary_crop') || 'Not specified';
-                const userSoil = localStorage.getItem('soil_type') || 'Not specified';
-                const userIrrigation = localStorage.getItem('irrigation_type') || 'Not specified';
+    <!-- Recommendation Form -->
+    <div class="bg-white rounded-xl p-6 mb-8 card-shadow" id="customizationForm">
+        <h3 class="text-xl font-bold text-gray-800 mb-6">{{ t('customize_recommendation', user_language) }}</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Left Column -->
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('crop_type', user_language) }}</label>
+                    <div class="relative">
+                        <select id="cropSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-leaf focus:border-leaf transition-smooth appearance-none bg-white">
+                            <option value="">{{ t('select_crop', user_language) }}</option>
+                            <option value="Rice">{{ t('crop_rice', user_language) }}</option>
+                            <option value="Wheat">{{ t('crop_wheat', user_language) }}</option>
+                            <option value="Maize">{{ t('crop_maize', user_language) }}</option>
+                            <option value="Cotton">{{ t('crop_cotton', user_language) }}</option>
+                            <option value="Sugarcane">{{ t('crop_sugarcane', user_language) }}</option>
+                            <option value="Groundnut">{{ t('crop_groundnut', user_language) }}</option>
+                            <option value="Soybean">{{ t('crop_soybean', user_language) }}</option>
+                            <option value="Vegetables">{{ t('crop_vegetables', user_language) }}</option>
+                            <option value="Fruits">{{ t('crop_fruits', user_language) }}</option>
+                            <option value="Pulses">{{ t('crop_pulses', user_language) }}</option>
+                            <option value="Oilseeds">{{ t('crop_oilseeds', user_language) }}</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
                 
-                // Update UI
-                document.getElementById('userCrop').textContent = userCrop;
-                document.getElementById('userLocation').textContent = userLocation;
-                document.getElementById('userSoil').textContent = userSoil;
-                document.getElementById('userIrrigation').textContent = userIrrigation;
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('soil_type', user_language) }}</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="selectSoil('Clay')" class="soil-btn py-3 px-4 border rounded-lg text-center transition-smooth" data-soil="Clay">
+                            <i class="fas fa-water text-water text-lg mb-1 block"></i>
+                            <div class="font-medium">{{ t('clay', user_language) }}</div>
+                            <div class="text-xs text-gray-500">{{ t('clay_desc', user_language) }}</div>
+                        </button>
+                        <button onclick="selectSoil('Sandy')" class="soil-btn py-3 px-4 border rounded-lg text-center transition-smooth" data-soil="Sandy">
+                            <i class="fas fa-sun text-yellow-500 text-lg mb-1 block"></i>
+                            <div class="font-medium">{{ t('sandy', user_language) }}</div>
+                            <div class="text-xs text-gray-500">{{ t('sandy_desc', user_language) }}</div>
+                        </button>
+                        <button onclick="selectSoil('Loamy')" class="soil-btn py-3 px-4 border rounded-lg text-center transition-smooth" data-soil="Loamy">
+                            <i class="fas fa-seedling text-leaf text-lg mb-1 block"></i>
+                            <div class="font-medium">{{ t('loamy', user_language) }}</div>
+                            <div class="text-xs text-gray-500">{{ t('loamy_desc', user_language) }}</div>
+                        </button>
+                        <button onclick="selectSoil('Silt')" class="soil-btn py-3 px-4 border rounded-lg text-center transition-smooth" data-soil="Silt">
+                            <i class="fas fa-water text-blue-400 text-lg mb-1 block"></i>
+                            <div class="font-medium">{{ t('silt', user_language) }}</div>
+                            <div class="text-xs text-gray-500">{{ t('silt_desc', user_language) }}</div>
+                        </button>
+                    </div>
+                    <input type="hidden" id="soilType" value="">
+                </div>
                 
-                // Pre-fill form with user data
-                if (userCrop && userCrop !== 'Not specified') {
-                    const cropSelect = document.getElementById('cropSelect');
-                    for (let option of cropSelect.options) {
-                        if (option.text === userCrop) {
-                            cropSelect.value = userCrop;
-                            break;
-                        }
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('growth_stage', user_language) }}</label>
+                    <div class="flex space-x-3 overflow-x-auto pb-2">
+                        <button onclick="selectStage('Seedling')" class="stage-btn flex-shrink-0 px-4 py-2 border rounded-lg transition-smooth">
+                            <div class="text-center">
+                                <div class="text-lg">🌱</div>
+                                <div class="text-sm font-medium">{{ t('seedling', user_language) }}</div>
+                            </div>
+                        </button>
+                        <button onclick="selectStage('Vegetative')" class="stage-btn flex-shrink-0 px-4 py-2 border rounded-lg transition-smooth">
+                            <div class="text-center">
+                                <div class="text-lg">🌿</div>
+                                <div class="text-sm font-medium">{{ t('vegetative', user_language) }}</div>
+                            </div>
+                        </button>
+                        <button onclick="selectStage('Flowering')" class="stage-btn flex-shrink-0 px-4 py-2 border rounded-lg transition-smooth">
+                            <div class="text-center">
+                                <div class="text-lg">🌼</div>
+                                <div class="text-sm font-medium">{{ t('flowering', user_language) }}</div>
+                            </div>
+                        </button>
+                        <button onclick="selectStage('Fruiting')" class="stage-btn flex-shrink-0 px-4 py-2 border rounded-lg transition-smooth">
+                            <div class="text-center">
+                                <div class="text-lg">🍅</div>
+                                <div class="text-sm font-medium">{{ t('fruiting', user_language) }}</div>
+                            </div>
+                        </button>
+                        <button onclick="selectStage('Maturity')" class="stage-btn flex-shrink-0 px-4 py-2 border rounded-lg transition-smooth">
+                            <div class="text-center">
+                                <div class="text-lg">🌾</div>
+                                <div class="text-sm font-medium">{{ t('maturity', user_language) }}</div>
+                            </div>
+                        </button>
+                    </div>
+                    <input type="hidden" id="growthStage" value="">
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('farm_size', user_language) }}</label>
+                    <div class="flex items-center">
+                        <input type="range" id="farmSize" min="0.5" max="100" step="0.5" value="5" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        <div class="ml-4 w-24">
+                            <input type="number" id="farmSizeInput" min="0.5" max="100" step="0.5" value="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center">
+                        </div>
+                        <span class="ml-2 text-gray-600">{{ t('acres', user_language) }}</span>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-2">{{ t('adjust_farm_size', user_language) }}</div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('budget_range', user_language) }}</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="selectBudget('low')" class="budget-btn py-3 border rounded-lg text-center transition-smooth">
+                            <div class="font-medium">{{ t('budget_low', user_language) }}</div>
+                            <div class="text-xs text-gray-500">{{ t('budget_low_range', user_language) }}</div>
+                        </button>
+                        <button onclick="selectBudget('medium')" class="budget-btn py-3 border rounded-lg text-center transition-smooth">
+                            <div class="font-medium">{{ t('budget_medium', user_language) }}</div>
+                            <div class="text-xs text-gray-500">{{ t('budget_medium_range', user_language) }}</div>
+                        </button>
+                        <button onclick="selectBudget('high')" class="budget-btn py-3 border rounded-lg text-center transition-smooth">
+                            <div class="font-medium">{{ t('budget_high', user_language) }}</div>
+                            <div class="text-xs text-gray-500">{{ t('budget_high_range', user_language) }}</div>
+                        </button>
+                    </div>
+                    <input type="hidden" id="budgetRange" value="medium">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('special_requirements', user_language) }}</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="organicPreference" class="rounded text-leaf focus:ring-leaf">
+                            <span class="ml-2 text-gray-700">{{ t('organic_preference', user_language) }}</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="waterSaving" class="rounded text-leaf focus:ring-leaf">
+                            <span class="ml-2 text-gray-700">{{ t('water_saving', user_language) }}</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="quickResults" class="rounded text-leaf focus:ring-leaf">
+                            <span class="ml-2 text-gray-700">{{ t('quick_results', user_language) }}</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="sustainable" class="rounded text-leaf focus:ring-leaf">
+                            <span class="ml-2 text-gray-700">{{ t('sustainable_farming', user_language) }}</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('additional_notes', user_language) }}</label>
+                    <textarea id="additionalNotes" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-leaf focus:border-leaf transition-smooth" placeholder="{{ t('notes_placeholder', user_language) }}"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-center">
+            <button onclick="generateRecommendation()" class="px-8 py-3 gradient-leaf text-white rounded-lg hover:opacity-90 transition-smooth font-bold text-lg flex items-center">
+                <i class="fas fa-brain mr-2"></i>
+                {{ t('generate_ai_recommendation', user_language) }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="hidden bg-white rounded-xl p-8 mb-8 card-shadow">
+        <div class="text-center">
+            <div class="text-4xl text-leaf mb-4">
+                <i class="fas fa-cogs fa-spin"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">{{ t('analyzing_farm_data', user_language) }}</h3>
+            <p class="text-gray-600 mb-6">{{ t('loading_description', user_language) }}<span class="loading-dots"></span></p>
+            
+            <div class="max-w-md mx-auto">
+                <div class="flex justify-between text-sm text-gray-500 mb-2">
+                    <span>{{ t('collecting_data', user_language) }}</span>
+                    <span>75%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div class="bg-leaf h-2.5 rounded-full pulse" style="width: 75%"></div>
+                </div>
+                
+                <div class="mt-6 grid grid-cols-3 gap-4">
+                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                        <div class="text-earth text-lg mb-1"><i class="fas fa-seedling"></i></div>
+                        <div class="text-xs">{{ t('soil_analysis', user_language) }}</div>
+                    </div>
+                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                        <div class="text-earth text-lg mb-1"><i class="fas fa-cloud-sun"></i></div>
+                        <div class="text-xs">{{ t('weather_check', user_language) }}</div>
+                    </div>
+                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                        <div class="text-earth text-lg mb-1"><i class="fas fa-robot"></i></div>
+                        <div class="text-xs">{{ t('ai_processing', user_language) }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="resultsSection" class="hidden">
+        <!-- Summary Card -->
+        <div class="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-6 mb-8 card-shadow">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="mb-4 md:mb-0 md:w-2/3">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">{{ t('personalized_fertilizer_plan', user_language) }}</h3>
+                    <p class="text-gray-700 mb-3" id="planSummary">{{ t('plan_summary', user_language) }}</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-white px-3 py-1 rounded-full text-sm text-green-700 border border-green-200">{{ t('ready_to_apply', user_language) }}</span>
+                        <span class="bg-white px-3 py-1 rounded-full text-sm text-blue-700 border border-blue-200" id="weatherStatus">{{ t('weather_adjusted', user_language) }}</span>
+                        <span class="bg-white px-3 py-1 rounded-full text-sm text-purple-700 border border-purple-200" id="costRange">{{ t('cost_effective', user_language) }}</span>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="downloadPlan()" class="px-4 py-2 bg-white border border-leaf text-leaf rounded-lg hover:bg-green-50 transition-smooth">
+                        <i class="fas fa-download mr-2"></i>{{ t('download_pdf', user_language) }}
+                    </button>
+                    <button onclick="sharePlan()" class="px-4 py-2 bg-leaf text-white rounded-lg hover:bg-green-700 transition-smooth">
+                        <i class="fas fa-share-alt mr-2"></i>{{ t('share_plan', user_language) }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Recommendations -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- NPK Recommendation -->
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-atom text-red-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800">{{ t('npk_recommendation', user_language) }}</h4>
+                        <div class="text-xs text-gray-500">{{ t('npk_subtitle', user_language) }}</div>
+                    </div>
+                </div>
+                
+                <div class="text-center mb-6">
+                    <div class="text-4xl font-bold text-gray-800 mb-2" id="npkRatio">--:--:--</div>
+                    <div class="text-sm text-gray-600">{{ t('optimal_ratio', user_language) }}</div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-700">{{ t('nitrogen', user_language) }}</span>
+                            <span class="font-medium" id="nitrogenAmount">-- kg/acre</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-red-500 h-2 rounded-full" id="nitrogenBar" style="width: 60%"></div>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1" id="nitrogenRole">{{ t('for_leaf_growth', user_language) }}</div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-700">{{ t('phosphorus', user_language) }}</span>
+                            <span class="font-medium" id="phosphorusAmount">-- kg/acre</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-500 h-2 rounded-full" id="phosphorusBar" style="width: 40%"></div>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1" id="phosphorusRole">{{ t('for_root_development', user_language) }}</div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-700">{{ t('potassium', user_language) }}</span>
+                            <span class="font-medium" id="potassiumAmount">-- kg/acre</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-yellow-500 h-2 rounded-full" id="potassiumBar" style="width: 50%"></div>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1" id="potassiumRole">{{ t('for_disease_resistance', user_language) }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Application Schedule -->
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-calendar-alt text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800">{{ t('application_schedule', user_language) }}</h4>
+                        <div class="text-xs text-gray-500">{{ t('timing_quantities', user_language) }}</div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4" id="scheduleList">
+                    <!-- Will be populated by JavaScript -->
+                    <div class="text-center py-8 text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-3"></i>
+                        <div>{{ t('loading_schedule', user_language) }}</div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 pt-4 border-t border-gray-100">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="text-sm text-gray-500">{{ t('total_required', user_language) }}</div>
+                            <div class="text-xl font-bold text-gray-800" id="totalFertilizer">-- kg</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm text-gray-500">{{ t('estimated_cost', user_language) }}</div>
+                            <div class="text-xl font-bold text-green-600" id="estimatedCost">₹ --</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommended Products -->
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-shopping-bag text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800">{{ t('recommended_products', user_language) }}</h4>
+                        <div class="text-xs text-gray-500">{{ t('trusted_brands', user_language) }}</div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4 mb-6" id="productList">
+                    <!-- Will be populated by JavaScript -->
+                    <div class="text-center py-8 text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-3"></i>
+                        <div>{{ t('loading_products', user_language) }}</div>
+                    </div>
+                </div>
+                
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <i class="fas fa-lightbulb text-yellow-500 text-lg mr-3 mt-1"></i>
+                        <div>
+                            <div class="font-medium text-yellow-800 mb-1">{{ t('pro_tip', user_language) }}</div>
+                            <div class="text-sm text-yellow-700" id="proTip">{{ t('pro_tip_default', user_language) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Sections -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Organic Alternatives -->
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <h4 class="font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-leaf text-leaf mr-2"></i>
+                    {{ t('organic_alternatives', user_language) }}
+                </h4>
+                
+                <div class="space-y-4" id="organicList">
+                    <!-- Will be populated by JavaScript -->
+                    <div class="text-center py-4 text-gray-400">
+                        {{ t('loading_organics', user_language) }}
+                    </div>
+                </div>
+                
+                <div class="mt-6 pt-4 border-t border-gray-100">
+                    <div class="text-sm text-gray-600">
+                        <i class="fas fa-info-circle text-water mr-1"></i>
+                        <span id="organicNote">{{ t('organic_note', user_language) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Government Schemes -->
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <h4 class="font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-rupee-sign text-green-600 mr-2"></i>
+                    {{ t('government_schemes', user_language) }}
+                </h4>
+                
+                <div class="space-y-4" id="schemesList">
+                    <!-- Will be populated by JavaScript -->
+                    <div class="text-center py-4 text-gray-400">
+                        {{ t('loading_schemes', user_language) }}
+                    </div>
+                </div>
+                
+                <div class="mt-6 pt-4 border-t border-gray-100">
+                    <a href="#" class="text-water hover:text-blue-700 text-sm font-medium">
+                        <i class="fas fa-external-link-alt mr-1"></i>
+                        {{ t('apply_online', user_language) }}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="bg-white rounded-xl p-6 card-shadow">
+            <h4 class="font-bold text-gray-800 mb-6">{{ t('ready_to_implement', user_language) }}</h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="setReminder()" class="p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-smooth text-center">
+                    <div class="text-blue-600 text-2xl mb-2">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="font-medium text-gray-800 mb-1">{{ t('set_reminder', user_language) }}</div>
+                    <div class="text-sm text-gray-600">{{ t('reminder_desc', user_language) }}</div>
+                </button>
+                
+                <button onclick="askExpert()" class="p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-smooth text-center">
+                    <div class="text-leaf text-2xl mb-2">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="font-medium text-gray-800 mb-1">{{ t('ask_expert', user_language) }}</div>
+                    <div class="text-sm text-gray-600">{{ t('expert_desc', user_language) }}</div>
+                </button>
+                
+                <button onclick="comparePrices()" class="p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-smooth text-center">
+                    <div class="text-purple-600 text-2xl mb-2">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="font-medium text-gray-800 mb-1">{{ t('compare_prices', user_language) }}</div>
+                    <div class="text-sm text-gray-600">{{ t('compare_desc', user_language) }}</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="mt-8 text-center text-xs text-gray-500">
+            <p><i class="fas fa-exclamation-circle mr-1"></i> {{ t('disclaimer', user_language) }}</p>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="hidden bg-white rounded-xl p-8 mb-8 card-shadow">
+        <div class="text-center">
+            <div class="text-4xl text-red-500 mb-4">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">{{ t('unable_to_generate', user_language) }}</h3>
+            <p class="text-gray-600 mb-6" id="errorMessage">{{ t('error_message_default', user_language) }}</p>
+            <button onclick="retryGeneration()" class="px-6 py-3 bg-leaf text-white rounded-lg hover:bg-green-700 transition-smooth">
+                <i class="fas fa-redo mr-2"></i>
+                {{ t('try_again', user_language) }}
+            </button>
+        </div>
+    </div>
+</main>
+
+<!-- Chatbot Modal -->
+<div id="chatbotModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl w-full max-w-2xl card-shadow">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800">{{ t('ask_fertilizer_expert', user_language) }}</h2>
+                <button onclick="hideChatbot()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="h-96 overflow-y-auto mb-4 p-4 border rounded-lg" id="chatMessages">
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-robot text-3xl mb-3 text-leaf"></i>
+                    <p>{{ t('chat_welcome', user_language) }}</p>
+                </div>
+            </div>
+            <div class="flex">
+                <input type="text" id="chatInput" class="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-leaf focus:border-leaf" placeholder="{{ t('chat_placeholder', user_language) }}">
+                <button onclick="sendChatMessage()" class="px-6 bg-leaf text-white rounded-r-lg hover:bg-green-700">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // ========== TRANSLATIONS FOR JAVASCRIPT ==========
+    window.fertilizerTranslations = {
+        please_select_crop: "{{ t('js_please_select_crop', user_language) }}",
+        please_select_soil: "{{ t('js_please_select_soil', user_language) }}",
+        generating: "{{ t('js_generating', user_language) }}",
+        generate_new: "{{ t('js_generate_new', user_language) }}",
+        enter_date: "{{ t('js_enter_date', user_language) }}",
+        reminder_set: "{{ t('js_reminder_set', user_language) }}",
+        redirecting: "{{ t('js_redirecting', user_language) }}",
+        chat_error: "{{ t('js_chat_error', user_language) }}",
+        welcome_title: "{{ t('js_welcome_title', user_language) }}",
+        welcome_message: "{{ t('js_welcome_message', user_language) }}",
+        get_recommendations: "{{ t('js_get_recommendations', user_language) }}",
+        
+        // Crop names for fallback
+        crop_rice: "{{ t('crop_rice', user_language) }}",
+        crop_wheat: "{{ t('crop_wheat', user_language) }}",
+        crop_maize: "{{ t('crop_maize', user_language) }}",
+        crop_cotton: "{{ t('crop_cotton', user_language) }}",
+        crop_sugarcane: "{{ t('crop_sugarcane', user_language) }}",
+        
+        // Soil types
+        soil_clay: "{{ t('clay', user_language) }}",
+        soil_sandy: "{{ t('sandy', user_language) }}",
+        soil_loamy: "{{ t('loamy', user_language) }}",
+        soil_silt: "{{ t('silt', user_language) }}",
+        
+        // Growth stages
+        stage_seedling: "{{ t('seedling', user_language) }}",
+        stage_vegetative: "{{ t('vegetative', user_language) }}",
+        stage_flowering: "{{ t('flowering', user_language) }}",
+        stage_fruiting: "{{ t('fruiting', user_language) }}",
+        stage_maturity: "{{ t('maturity', user_language) }}",
+        
+        // Budget
+        budget_low: "{{ t('budget_low', user_language) }}",
+        budget_medium: "{{ t('budget_medium', user_language) }}",
+        budget_high: "{{ t('budget_high', user_language) }}",
+        
+        // NPK roles
+        nitrogen_role: "{{ t('for_leaf_growth', user_language) }}",
+        phosphorus_role: "{{ t('for_root_development', user_language) }}",
+        potassium_role: "{{ t('for_disease_resistance', user_language) }}",
+        
+        // Action buttons
+        download_pdf: "{{ t('download_pdf', user_language) }}",
+        share_plan: "{{ t('share_plan', user_language) }}",
+        set_reminder: "{{ t('set_reminder', user_language) }}",
+        ask_expert: "{{ t('ask_expert', user_language) }}",
+        compare_prices: "{{ t('compare_prices', user_language) }}",
+        
+        // Pro tip
+        pro_tip_default: "{{ t('pro_tip_default', user_language) }}"
+    };
+
+    // Global variables
+    let currentUserData = null;
+    let currentRecommendation = null;
+    let chatHistory = [];
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadUserProfile();
+        setupEventListeners();
+        initializeForm();
+    });
+
+    // ========== USER PROFILE LOADING ==========
+    function loadUserProfile() {
+        try {
+            // Get user data from localStorage (from dashboard)
+            const userName = localStorage.getItem('user-name') || 'Farmer';
+            const userLocation = localStorage.getItem('user_location') || '{{ t("not_specified", user_language) }}';
+            const userCrop = localStorage.getItem('primary_crop') || '{{ t("not_specified", user_language) }}';
+            const userSoil = localStorage.getItem('soil_type') || '{{ t("not_specified", user_language) }}';
+            const userIrrigation = localStorage.getItem('irrigation_type') || '{{ t("not_specified", user_language) }}';
+            
+            // Update UI
+            document.getElementById('userCrop').textContent = userCrop;
+            document.getElementById('userLocation').textContent = userLocation;
+            document.getElementById('userSoil').textContent = userSoil;
+            document.getElementById('userIrrigation').textContent = userIrrigation;
+            
+            // Pre-fill form with user data
+            if (userCrop && userCrop !== '{{ t("not_specified", user_language) }}') {
+                const cropSelect = document.getElementById('cropSelect');
+                for (let option of cropSelect.options) {
+                    if (option.text === userCrop) {
+                        cropSelect.value = userCrop;
+                        break;
                     }
                 }
-                
-                if (userSoil && userSoil !== 'Not specified') {
-                    selectSoil(userSoil);
-                }
-                
-                // Store user data globally
-                currentUserData = {
-                    username: userName,
-                    location: userLocation,
-                    crop: userCrop,
-                    soil: userSoil,
-                    irrigation: userIrrigation,
-                    farmSize: localStorage.getItem('farm_size') || '5'
-                };
-                
-                // Set farm size if available
-                if (currentUserData.farmSize) {
-                    document.getElementById('farmSize').value = currentUserData.farmSize;
-                    document.getElementById('farmSizeInput').value = currentUserData.farmSize;
-                }
-                
-            } catch (error) {
-                console.error('Error loading user profile:', error);
-            }
-        }
-
-        // ========== FORM HANDLING ==========
-        function setupEventListeners() {
-            // Farm size synchronization
-            const farmSizeSlider = document.getElementById('farmSize');
-            const farmSizeInput = document.getElementById('farmSizeInput');
-            
-            farmSizeSlider.addEventListener('input', function() {
-                farmSizeInput.value = this.value;
-            });
-            
-            farmSizeInput.addEventListener('input', function() {
-                farmSizeSlider.value = this.value;
-            });
-            
-            farmSizeInput.addEventListener('change', function() {
-                if (this.value < 0.5) this.value = 0.5;
-                if (this.value > 100) this.value = 100;
-                farmSizeSlider.value = this.value;
-            });
-        }
-
-        function initializeForm() {
-            // Set default selections
-            selectSoil('Loamy');
-            selectStage('Vegetative');
-            selectBudget('medium');
-            
-            // Set default checkboxes
-            document.getElementById('organicPreference').checked = true;
-            document.getElementById('sustainable').checked = true;
-        }
-
-        function selectSoil(soilType) {
-            document.getElementById('soilType').value = soilType;
-            
-            // Update button styles
-            document.querySelectorAll('.soil-btn').forEach(btn => {
-                if (btn.getAttribute('data-soil') === soilType) {
-                    btn.classList.add('border-leaf', 'bg-green-50', 'text-leaf');
-                    btn.classList.remove('border-gray-300', 'bg-white');
-                } else {
-                    btn.classList.remove('border-leaf', 'bg-green-50', 'text-leaf');
-                    btn.classList.add('border-gray-300', 'bg-white');
-                }
-            });
-        }
-
-        function selectStage(stage) {
-            document.getElementById('growthStage').value = stage;
-            
-            // Update button styles
-            document.querySelectorAll('.stage-btn').forEach(btn => {
-                if (btn.textContent.includes(stage)) {
-                    btn.classList.add('border-leaf', 'bg-green-50', 'text-leaf');
-                    btn.classList.remove('border-gray-300', 'bg-white');
-                } else {
-                    btn.classList.remove('border-leaf', 'bg-green-50', 'text-leaf');
-                    btn.classList.add('border-gray-300', 'bg-white');
-                }
-            });
-        }
-
-        function selectBudget(budget) {
-            document.getElementById('budgetRange').value = budget;
-            
-            // Update button styles
-            document.querySelectorAll('.budget-btn').forEach(btn => {
-                const text = btn.textContent.toLowerCase();
-                if (text.includes(budget)) {
-                    btn.classList.add('border-leaf', 'bg-green-50', 'text-leaf');
-                    btn.classList.remove('border-gray-300', 'bg-white');
-                } else {
-                    btn.classList.remove('border-leaf', 'bg-green-50', 'text-leaf');
-                    btn.classList.add('border-gray-300', 'bg-white');
-                }
-            });
-        }
-
-        function scrollToForm() {
-            document.getElementById('customizationForm').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function editProfile() {
-            window.location.href = 'dashboard.html#profile';
-        }
-
-        // ========== AI RECOMMENDATION GENERATION ==========
-        async function generateRecommendation() {
-            // Get form data
-            const formData = getFormData();
-            
-            // Validate
-            if (!formData.crop) {
-                alert('Please select your crop type');
-                return;
             }
             
-            if (!formData.soilType) {
-                alert('Please select your soil type');
-                return;
+            if (userSoil && userSoil !== '{{ t("not_specified", user_language) }}') {
+                selectSoil(userSoil);
             }
             
-            // Show loading state
-            showLoadingState();
-            
-            try {
-                // Generate recommendation using LLM
-                const recommendation = await callLLMForRecommendation(formData);
-                
-                // Store recommendation
-                currentRecommendation = recommendation;
-                
-                // Display results
-                displayRecommendation(recommendation);
-                
-                // Hide loading, show results
-                hideLoadingState();
-                showResultsSection();
-                
-                // Scroll to results
-                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
-                
-            } catch (error) {
-                console.error('Error generating recommendation:', error);
-                showErrorState('Failed to generate recommendation. Please try again.');
-            }
-        }
-
-        function getFormData() {
-            return {
-                crop: document.getElementById('cropSelect').value,
-                soilType: document.getElementById('soilType').value,
-                growthStage: document.getElementById('growthStage').value,
-                farmSize: parseFloat(document.getElementById('farmSize').value),
-                budgetRange: document.getElementById('budgetRange').value,
-                organicPreference: document.getElementById('organicPreference').checked,
-                waterSaving: document.getElementById('waterSaving').checked,
-                quickResults: document.getElementById('quickResults').checked,
-                sustainable: document.getElementById('sustainable').checked,
-                additionalNotes: document.getElementById('additionalNotes').value,
-                location: currentUserData?.location || 'Unknown location',
-                currentSeason: getCurrentSeason()
+            // Store user data globally
+            currentUserData = {
+                username: userName,
+                location: userLocation,
+                crop: userCrop,
+                soil: userSoil,
+                irrigation: userIrrigation,
+                farmSize: localStorage.getItem('farm_size') || '5'
             };
-        }
-
-        function getCurrentSeason() {
-            const month = new Date().getMonth() + 1;
-            if (month >= 10 || month <= 2) return 'Rabi';
-            if (month >= 7 && month <= 9) return 'Kharif';
-            return 'Zaid';
-        }
-
-        // ========== LLM API CALL ==========
-        async function callLLMForRecommendation(formData) {
-            // Create the prompt for LLM
-            const prompt = createFertilizerPrompt(formData);
             
-            try {
-                // Call your Flask backend LLM endpoint
-                const response = await fetch('/api/fertilizer-recommendation', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(formData),
-                    credentials: 'include'
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.fertilizer_data) {
-                        return data.fertilizer_data;
-                    }
-                }
-                
-                // If API fails, generate fallback data
-                return generateFallbackRecommendation(formData);
-                
-            } catch (error) {
-                console.error('LLM API error:', error);
-                return generateFallbackRecommendation(formData);
+            // Set farm size if available
+            if (currentUserData.farmSize) {
+                document.getElementById('farmSize').value = currentUserData.farmSize;
+                document.getElementById('farmSizeInput').value = currentUserData.farmSize;
             }
+            
+        } catch (error) {
+            console.error('Error loading user profile:', error);
         }
+    }
 
-        function createFertilizerPrompt(formData) {
-            return `You are an agricultural scientist specializing in Indian farming. Provide detailed fertilizer recommendation in JSON format.
+    // ========== FORM HANDLING ==========
+    function setupEventListeners() {
+        // Farm size synchronization
+        const farmSizeSlider = document.getElementById('farmSize');
+        const farmSizeInput = document.getElementById('farmSizeInput');
+        
+        farmSizeSlider.addEventListener('input', function() {
+            farmSizeInput.value = this.value;
+        });
+        
+        farmSizeInput.addEventListener('input', function() {
+            farmSizeSlider.value = this.value;
+        });
+        
+        farmSizeInput.addEventListener('change', function() {
+            if (this.value < 0.5) this.value = 0.5;
+            if (this.value > 100) this.value = 100;
+            farmSizeSlider.value = this.value;
+        });
+    }
+
+    function initializeForm() {
+        // Set default selections
+        selectSoil('Loamy');
+        selectStage('Vegetative');
+        selectBudget('medium');
+        
+        // Set default checkboxes
+        document.getElementById('organicPreference').checked = true;
+        document.getElementById('sustainable').checked = true;
+    }
+
+    function selectSoil(soilType) {
+        document.getElementById('soilType').value = soilType;
+        
+        // Update button styles
+        document.querySelectorAll('.soil-btn').forEach(btn => {
+            if (btn.getAttribute('data-soil') === soilType) {
+                btn.classList.add('border-leaf', 'bg-green-50', 'text-leaf');
+                btn.classList.remove('border-gray-300', 'bg-white');
+            } else {
+                btn.classList.remove('border-leaf', 'bg-green-50', 'text-leaf');
+                btn.classList.add('border-gray-300', 'bg-white');
+            }
+        });
+    }
+
+    function selectStage(stage) {
+        document.getElementById('growthStage').value = stage;
+        
+        // Update button styles
+        document.querySelectorAll('.stage-btn').forEach(btn => {
+            if (btn.textContent.includes(stage)) {
+                btn.classList.add('border-leaf', 'bg-green-50', 'text-leaf');
+                btn.classList.remove('border-gray-300', 'bg-white');
+            } else {
+                btn.classList.remove('border-leaf', 'bg-green-50', 'text-leaf');
+                btn.classList.add('border-gray-300', 'bg-white');
+            }
+        });
+    }
+
+    function selectBudget(budget) {
+        document.getElementById('budgetRange').value = budget;
+        
+        // Update button styles
+        document.querySelectorAll('.budget-btn').forEach(btn => {
+            const text = btn.textContent.toLowerCase();
+            if (text.includes(budget)) {
+                btn.classList.add('border-leaf', 'bg-green-50', 'text-leaf');
+                btn.classList.remove('border-gray-300', 'bg-white');
+            } else {
+                btn.classList.remove('border-leaf', 'bg-green-50', 'text-leaf');
+                btn.classList.add('border-gray-300', 'bg-white');
+            }
+        });
+    }
+
+    function scrollToForm() {
+        document.getElementById('customizationForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function editProfile() {
+        window.location.href = '/dashboard#profile';
+    }
+
+    // ========== AI RECOMMENDATION GENERATION ==========
+    async function generateRecommendation() {
+        // Get form data
+        const formData = getFormData();
+        
+        // Validate
+        if (!formData.crop) {
+            alert(window.fertilizerTranslations.please_select_crop);
+            return;
+        }
+        
+        if (!formData.soilType) {
+            alert(window.fertilizerTranslations.please_select_soil);
+            return;
+        }
+        
+        // Show loading state
+        showLoadingState();
+        
+        try {
+            // Generate recommendation using LLM
+            const recommendation = await callLLMForRecommendation(formData);
+            
+            // Store recommendation
+            currentRecommendation = recommendation;
+            
+            // Display results
+            displayRecommendation(recommendation);
+            
+            // Hide loading, show results
+            hideLoadingState();
+            showResultsSection();
+            
+            // Scroll to results
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+            
+        } catch (error) {
+            console.error('Error generating recommendation:', error);
+            showErrorState(window.fertilizerTranslations.chat_error);
+        }
+    }
+
+    function getFormData() {
+        return {
+            crop: document.getElementById('cropSelect').value,
+            soilType: document.getElementById('soilType').value,
+            growthStage: document.getElementById('growthStage').value,
+            farmSize: parseFloat(document.getElementById('farmSize').value),
+            budgetRange: document.getElementById('budgetRange').value,
+            organicPreference: document.getElementById('organicPreference').checked,
+            waterSaving: document.getElementById('waterSaving').checked,
+            quickResults: document.getElementById('quickResults').checked,
+            sustainable: document.getElementById('sustainable').checked,
+            additionalNotes: document.getElementById('additionalNotes').value,
+            location: currentUserData?.location || 'Unknown location',
+            currentSeason: getCurrentSeason()
+        };
+    }
+
+    function getCurrentSeason() {
+        const month = new Date().getMonth() + 1;
+        if (month >= 10 || month <= 2) return 'Rabi';
+        if (month >= 7 && month <= 9) return 'Kharif';
+        return 'Zaid';
+    }
+
+    // ========== LLM API CALL ==========
+    async function callLLMForRecommendation(formData) {
+        // Create the prompt for LLM
+        const prompt = createFertilizerPrompt(formData);
+        
+        try {
+            // Call your Flask backend LLM endpoint
+            const response = await fetch('/api/fertilizer-recommendation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(formData),
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.fertilizer_data) {
+                    return data.fertilizer_data;
+                }
+            }
+            
+            // If API fails, generate fallback data
+            return generateFallbackRecommendation(formData);
+            
+        } catch (error) {
+            console.error('LLM API error:', error);
+            return generateFallbackRecommendation(formData);
+        }
+    }
+
+    function createFertilizerPrompt(formData) {
+        return `You are an agricultural scientist specializing in Indian farming. Provide detailed fertilizer recommendation in JSON format.
 
 FARMER DETAILS:
 - Crop: ${formData.crop}
@@ -943,425 +998,424 @@ Provide this JSON structure:
 }
 
 Make it realistic for Indian farming conditions.`;
-        }
+    }
 
-        function generateFallbackRecommendation(formData) {
-            // Fallback data with realistic values
-            const cropNPK = {
-                'Rice': '60:30:30',
-                'Wheat': '120:60:40',
-                'Maize': '120:60:40',
-                'Cotton': '80:40:40',
-                'Sugarcane': '200:80:100',
-                'Vegetables': '100:50:50',
-                'default': '80:40:40'
-            };
-            
-            const npk = cropNPK[formData.crop] || cropNPK.default;
-            const [n, p, k] = npk.split(':').map(x => parseInt(x));
-            const totalPerAcre = n + p + k;
-            const totalRequired = Math.round(totalPerAcre * formData.farmSize);
-            
-            return {
-                npk_ratio: npk,
-                nitrogen_details: {
-                    amount: `${n} kg/acre`,
-                    role: "Promotes leaf growth and green color, essential for photosynthesis",
-                    percentage: Math.round((n / totalPerAcre) * 100)
+    function generateFallbackRecommendation(formData) {
+        // Fallback data with realistic values
+        const cropNPK = {
+            'Rice': '60:30:30',
+            'Wheat': '120:60:40',
+            'Maize': '120:60:40',
+            'Cotton': '80:40:40',
+            'Sugarcane': '200:80:100',
+            'Vegetables': '100:50:50',
+            'default': '80:40:40'
+        };
+        
+        const npk = cropNPK[formData.crop] || cropNPK.default;
+        const [n, p, k] = npk.split(':').map(x => parseInt(x));
+        const totalPerAcre = n + p + k;
+        const totalRequired = Math.round(totalPerAcre * formData.farmSize);
+        
+        return {
+            npk_ratio: npk,
+            nitrogen_details: {
+                amount: `${n} kg/acre`,
+                role: window.fertilizerTranslations.nitrogen_role,
+                percentage: Math.round((n / totalPerAcre) * 100)
+            },
+            phosphorus_details: {
+                amount: `${p} kg/acre`,
+                role: window.fertilizerTranslations.phosphorus_role,
+                percentage: Math.round((p / totalPerAcre) * 100)
+            },
+            potassium_details: {
+                amount: `${k} kg/acre`,
+                role: window.fertilizerTranslations.potassium_role,
+                percentage: Math.round((k / totalPerAcre) * 100)
+            },
+            application_schedule: [
+                {
+                    stage: "Basal Application",
+                    timing: "At sowing/transplanting",
+                    fertilizer: "DAP + MOP",
+                    quantity: `${Math.round(p * 0.5)} kg DAP + ${Math.round(k * 0.5)} kg MOP per acre`,
+                    method: "Broadcast and mix in soil"
                 },
-                phosphorus_details: {
-                    amount: `${p} kg/acre`,
-                    role: "Stimulates root development and flowering, improves energy transfer",
-                    percentage: Math.round((p / totalPerAcre) * 100)
+                {
+                    stage: "First Top Dressing",
+                    timing: "30 days after sowing",
+                    fertilizer: "Urea",
+                    quantity: `${Math.round(n * 0.4)} kg per acre`,
+                    method: "Side dressing near roots"
                 },
-                potassium_details: {
-                    amount: `${k} kg/acre`,
-                    role: "Enhances disease resistance, improves fruit quality and size",
-                    percentage: Math.round((k / totalPerAcre) * 100)
-                },
-                application_schedule: [
-                    {
-                        stage: "Basal Application",
-                        timing: "At sowing/transplanting",
-                        fertilizer: "DAP + MOP",
-                        quantity: `${Math.round(p * 0.5)} kg DAP + ${Math.round(k * 0.5)} kg MOP per acre`,
-                        method: "Broadcast and mix in soil"
-                    },
-                    {
-                        stage: "First Top Dressing",
-                        timing: "30 days after sowing",
-                        fertilizer: "Urea",
-                        quantity: `${Math.round(n * 0.4)} kg per acre`,
-                        method: "Side dressing near roots"
-                    },
-                    {
-                        stage: "Second Top Dressing",
-                        timing: "60 days after sowing",
-                        fertilizer: "Urea + MOP",
-                        quantity: `${Math.round(n * 0.6)} kg Urea + ${Math.round(k * 0.5)} kg MOP per acre`,
-                        method: "Side dressing, followed by light irrigation"
-                    }
-                ],
-                recommended_products: [
-                    {
-                        name: "IFFCO Nano Urea",
-                        type: "Nitrogen",
-                        npk: "46:0:0",
-                        brand: "IFFCO",
-                        approx_price: "₹ 300/bag"
-                    },
-                    {
-                        name: "DAP",
-                        type: "Phosphorus",
-                        npk: "18:46:0",
-                        brand: "Coromandel",
-                        approx_price: "₹ 1,400/bag"
-                    },
-                    {
-                        name: "MOP",
-                        type: "Potassium",
-                        npk: "0:0:60",
-                        brand: "IPL",
-                        approx_price: "₹ 1,800/bag"
-                    }
-                ],
-                organic_alternatives: [
-                    {
-                        name: "Vermicompost",
-                        source: "Earthworm casting",
-                        quantity: "2-3 tonnes/acre",
-                        benefits: "Improves soil structure, provides slow-release nutrients"
-                    },
-                    {
-                        name: "Neem Cake",
-                        source: "Neem seed residue",
-                        quantity: "200-300 kg/acre",
-                        benefits: "Natural pest repellent, provides nitrogen"
-                    },
-                    {
-                        name: "Farmyard Manure",
-                        source: "Animal waste",
-                        quantity: "5-10 tonnes/acre",
-                        benefits: "Complete nutrient source, improves water retention"
-                    }
-                ],
-                government_schemes: [
-                    {
-                        name: "PM-KISAN",
-                        subsidy: "40% on fertilizers",
-                        eligibility: "All farmers with land holdings",
-                        link: "https://pmkisan.gov.in"
-                    },
-                    {
-                        name: "Soil Health Card",
-                        subsidy: "Free soil testing",
-                        eligibility: "All farmers",
-                        link: "https://soilhealth.dac.gov.in"
-                    }
-                ],
-                total_required: `${totalRequired} kg`,
-                estimated_cost: `₹ ${Math.round(totalRequired * 40).toLocaleString()}`,
-                pro_tip: "Apply fertilizers in the evening or early morning to reduce nitrogen loss through volatilization",
-                plan_summary: `Optimized ${formData.crop} fertilizer plan for ${formData.soilType} soil in ${formData.currentSeason} season`,
-                weather_adjustment: "Adjust irrigation based on rainfall to prevent nutrient leaching",
-                cost_range: formData.budgetRange === 'high' ? 'Premium' : 'Cost-effective'
-            };
-        }
-
-        // ========== DISPLAY RECOMMENDATION ==========
-        function displayRecommendation(data) {
-            // Update NPK section
-            document.getElementById('npkRatio').textContent = data.npk_ratio;
-            document.getElementById('nitrogenAmount').textContent = data.nitrogen_details.amount;
-            document.getElementById('nitrogenBar').style.width = `${data.nitrogen_details.percentage}%`;
-            document.getElementById('nitrogenRole').textContent = data.nitrogen_details.role;
-            
-            document.getElementById('phosphorusAmount').textContent = data.phosphorus_details.amount;
-            document.getElementById('phosphorusBar').style.width = `${data.phosphorus_details.percentage}%`;
-            document.getElementById('phosphorusRole').textContent = data.phosphorus_details.role;
-            
-            document.getElementById('potassiumAmount').textContent = data.potassium_details.amount;
-            document.getElementById('potassiumBar').style.width = `${data.potassium_details.percentage}%`;
-            document.getElementById('potassiumRole').textContent = data.potassium_details.role;
-            
-            // Update schedule
-            const scheduleList = document.getElementById('scheduleList');
-            scheduleList.innerHTML = '';
-            
-            data.application_schedule.forEach(item => {
-                const scheduleItem = document.createElement('div');
-                scheduleItem.className = 'p-4 border border-gray-200 rounded-lg';
-                scheduleItem.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <div class="font-medium text-gray-800">${item.stage}</div>
-                            <div class="text-sm text-gray-600">${item.timing}</div>
-                        </div>
-                        <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">${item.fertilizer}</span>
-                    </div>
-                    <div class="text-sm text-gray-700 mb-1">${item.quantity}</div>
-                    <div class="text-xs text-gray-500">Method: ${item.method}</div>
-                `;
-                scheduleList.appendChild(scheduleItem);
-            });
-            
-            // Update products
-            const productList = document.getElementById('productList');
-            productList.innerHTML = '';
-            
-            data.recommended_products.forEach(product => {
-                const productItem = document.createElement('div');
-                productItem.className = 'p-4 border border-gray-200 rounded-lg';
-                productItem.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <div class="font-medium text-gray-800">${product.name}</div>
-                            <div class="text-sm text-gray-600">${product.brand} • ${product.type}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-medium text-gray-800">${product.npk}</div>
-                            <div class="text-sm text-green-600">${product.approx_price}</div>
-                        </div>
-                    </div>
-                    <div class="text-xs text-gray-500">NPK Ratio: ${product.npk}</div>
-                `;
-                productList.appendChild(productItem);
-            });
-            
-            // Update organic alternatives
-            const organicList = document.getElementById('organicList');
-            organicList.innerHTML = '';
-            
-            data.organic_alternatives.forEach(organic => {
-                const organicItem = document.createElement('div');
-                organicItem.className = 'p-4 border border-green-200 bg-green-50 rounded-lg';
-                organicItem.innerHTML = `
-                    <div class="font-medium text-gray-800 mb-1">${organic.name}</div>
-                    <div class="text-sm text-gray-700 mb-2">${organic.quantity}</div>
-                    <div class="text-xs text-gray-600">${organic.benefits}</div>
-                `;
-                organicList.appendChild(organicItem);
-            });
-            
-            // Update government schemes
-            const schemesList = document.getElementById('schemesList');
-            schemesList.innerHTML = '';
-            
-            data.government_schemes.forEach(scheme => {
-                const schemeItem = document.createElement('div');
-                schemeItem.className = 'p-4 border border-yellow-200 bg-yellow-50 rounded-lg';
-                schemeItem.innerHTML = `
-                    <div class="font-medium text-gray-800 mb-1">${scheme.name}</div>
-                    <div class="text-sm text-green-600 mb-2">${scheme.subsidy} subsidy</div>
-                    <div class="text-xs text-gray-600 mb-2">${scheme.eligibility}</div>
-                    <a href="${scheme.link}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800">Learn more →</a>
-                `;
-                schemesList.appendChild(schemeItem);
-            });
-            
-            // Update totals and tips
-            document.getElementById('totalFertilizer').textContent = data.total_required;
-            document.getElementById('estimatedCost').textContent = data.estimated_cost;
-            document.getElementById('proTip').textContent = data.pro_tip;
-            document.getElementById('planSummary').textContent = data.plan_summary;
-            document.getElementById('weatherStatus').textContent = data.weather_adjustment;
-            document.getElementById('costRange').textContent = data.cost_range;
-        }
-
-        // ========== UI STATE MANAGEMENT ==========
-        function showLoadingState() {
-            document.getElementById('loadingState').classList.remove('hidden');
-            document.getElementById('resultsSection').classList.add('hidden');
-            document.getElementById('errorState').classList.add('hidden');
-            
-            // Disable generate button
-            const btn = document.getElementById('generateBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
-            btn.disabled = true;
-        }
-
-        function hideLoadingState() {
-            document.getElementById('loadingState').classList.add('hidden');
-            
-            // Re-enable generate button
-            const btn = document.getElementById('generateBtn');
-            btn.innerHTML = '<i class="fas fa-magic mr-2"></i>Generate New';
-            btn.disabled = false;
-        }
-
-        function showResultsSection() {
-            document.getElementById('resultsSection').classList.remove('hidden');
-        }
-
-        function showErrorState(message) {
-            document.getElementById('errorState').classList.remove('hidden');
-            document.getElementById('errorMessage').textContent = message;
-            hideLoadingState();
-        }
-
-        function retryGeneration() {
-            document.getElementById('errorState').classList.add('hidden');
-            generateRecommendation();
-        }
-
-        // ========== ACTION BUTTONS ==========
-        function downloadPlan() {
-            alert('PDF download feature would be implemented here with proper backend integration.');
-            // In production: Generate PDF from currentRecommendation data
-        }
-
-        function sharePlan() {
-            if (navigator.share) {
-                navigator.share({
-                    title: `Fertilizer Plan for ${currentUserData?.crop || 'My Crop'}`,
-                    text: `Check out my personalized fertilizer recommendation!`,
-                    url: window.location.href
-                });
-            } else {
-                alert('Share link copied to clipboard!');
-                navigator.clipboard.writeText(window.location.href);
-            }
-        }
-
-        function setReminder() {
-            const date = prompt('Enter application date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
-            if (date) {
-                alert(`Reminder set for ${date}! You'll receive a notification.`);
-            }
-        }
-
-        function askExpert() {
-            showChatbot();
-        }
-
-        function comparePrices() {
-            alert('Redirecting to market price comparison...');
-            // In production: Redirect to market price page or open modal
-        }
-
-        // ========== CHATBOT ==========
-        function showChatbot() {
-            document.getElementById('chatbotModal').classList.remove('hidden');
-        }
-
-        function hideChatbot() {
-            document.getElementById('chatbotModal').classList.add('hidden');
-        }
-
-        async function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            
-            if (!message) return;
-            
-            // Add user message
-            addChatMessage('user', message);
-            input.value = '';
-            
-            // Show typing indicator
-            addChatMessage('assistant', '...', true);
-            
-            try {
-                // Call chatbot API
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        session_id: 'fertilizer_chat',
-                        context: {
-                            topic: 'fertilizer',
-                            recommendation: currentRecommendation,
-                            user_data: currentUserData
-                        }
-                    }),
-                    credentials: 'include'
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    // Remove typing indicator
-                    removeTypingIndicator();
-                    // Add assistant response
-                    addChatMessage('assistant', data.reply);
-                } else {
-                    throw new Error('Chat failed');
+                {
+                    stage: "Second Top Dressing",
+                    timing: "60 days after sowing",
+                    fertilizer: "Urea + MOP",
+                    quantity: `${Math.round(n * 0.6)} kg Urea + ${Math.round(k * 0.5)} kg MOP per acre`,
+                    method: "Side dressing, followed by light irrigation"
                 }
-                
-            } catch (error) {
+            ],
+            recommended_products: [
+                {
+                    name: "IFFCO Nano Urea",
+                    type: "Nitrogen",
+                    npk: "46:0:0",
+                    brand: "IFFCO",
+                    approx_price: "₹ 300/bag"
+                },
+                {
+                    name: "DAP",
+                    type: "Phosphorus",
+                    npk: "18:46:0",
+                    brand: "Coromandel",
+                    approx_price: "₹ 1,400/bag"
+                },
+                {
+                    name: "MOP",
+                    type: "Potassium",
+                    npk: "0:0:60",
+                    brand: "IPL",
+                    approx_price: "₹ 1,800/bag"
+                }
+            ],
+            organic_alternatives: [
+                {
+                    name: "Vermicompost",
+                    source: "Earthworm casting",
+                    quantity: "2-3 tonnes/acre",
+                    benefits: "Improves soil structure, provides slow-release nutrients"
+                },
+                {
+                    name: "Neem Cake",
+                    source: "Neem seed residue",
+                    quantity: "200-300 kg/acre",
+                    benefits: "Natural pest repellent, provides nitrogen"
+                },
+                {
+                    name: "Farmyard Manure",
+                    source: "Animal waste",
+                    quantity: "5-10 tonnes/acre",
+                    benefits: "Complete nutrient source, improves water retention"
+                }
+            ],
+            government_schemes: [
+                {
+                    name: "PM-KISAN",
+                    subsidy: "40% on fertilizers",
+                    eligibility: "All farmers with land holdings",
+                    link: "https://pmkisan.gov.in"
+                },
+                {
+                    name: "Soil Health Card",
+                    subsidy: "Free soil testing",
+                    eligibility: "All farmers",
+                    link: "https://soilhealth.dac.gov.in"
+                }
+            ],
+            total_required: `${totalRequired} kg`,
+            estimated_cost: `₹ ${Math.round(totalRequired * 40).toLocaleString()}`,
+            pro_tip: window.fertilizerTranslations.pro_tip_default,
+            plan_summary: `Optimized ${formData.crop} fertilizer plan for ${formData.soilType} soil in ${formData.currentSeason} season`,
+            weather_adjustment: "Adjust irrigation based on rainfall to prevent nutrient leaching",
+            cost_range: formData.budgetRange === 'high' ? 'Premium' : 'Cost-effective'
+        };
+    }
+
+    // ========== DISPLAY RECOMMENDATION ==========
+    function displayRecommendation(data) {
+        // Update NPK section
+        document.getElementById('npkRatio').textContent = data.npk_ratio;
+        document.getElementById('nitrogenAmount').textContent = data.nitrogen_details.amount;
+        document.getElementById('nitrogenBar').style.width = `${data.nitrogen_details.percentage}%`;
+        document.getElementById('nitrogenRole').textContent = data.nitrogen_details.role;
+        
+        document.getElementById('phosphorusAmount').textContent = data.phosphorus_details.amount;
+        document.getElementById('phosphorusBar').style.width = `${data.phosphorus_details.percentage}%`;
+        document.getElementById('phosphorusRole').textContent = data.phosphorus_details.role;
+        
+        document.getElementById('potassiumAmount').textContent = data.potassium_details.amount;
+        document.getElementById('potassiumBar').style.width = `${data.potassium_details.percentage}%`;
+        document.getElementById('potassiumRole').textContent = data.potassium_details.role;
+        
+        // Update schedule
+        const scheduleList = document.getElementById('scheduleList');
+        scheduleList.innerHTML = '';
+        
+        data.application_schedule.forEach(item => {
+            const scheduleItem = document.createElement('div');
+            scheduleItem.className = 'p-4 border border-gray-200 rounded-lg';
+            scheduleItem.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <div class="font-medium text-gray-800">${item.stage}</div>
+                        <div class="text-sm text-gray-600">${item.timing}</div>
+                    </div>
+                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">${item.fertilizer}</span>
+                </div>
+                <div class="text-sm text-gray-700 mb-1">${item.quantity}</div>
+                <div class="text-xs text-gray-500">{{ t('method_label', user_language) }}: ${item.method}</div>
+            `;
+            scheduleList.appendChild(scheduleItem);
+        });
+        
+        // Update products
+        const productList = document.getElementById('productList');
+        productList.innerHTML = '';
+        
+        data.recommended_products.forEach(product => {
+            const productItem = document.createElement('div');
+            productItem.className = 'p-4 border border-gray-200 rounded-lg';
+            productItem.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <div class="font-medium text-gray-800">${product.name}</div>
+                        <div class="text-sm text-gray-600">${product.brand} • ${product.type}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-medium text-gray-800">${product.npk}</div>
+                        <div class="text-sm text-green-600">${product.approx_price}</div>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-500">NPK Ratio: ${product.npk}</div>
+            `;
+            productList.appendChild(productItem);
+        });
+        
+        // Update organic alternatives
+        const organicList = document.getElementById('organicList');
+        organicList.innerHTML = '';
+        
+        data.organic_alternatives.forEach(organic => {
+            const organicItem = document.createElement('div');
+            organicItem.className = 'p-4 border border-green-200 bg-green-50 rounded-lg';
+            organicItem.innerHTML = `
+                <div class="font-medium text-gray-800 mb-1">${organic.name}</div>
+                <div class="text-sm text-gray-700 mb-2">${organic.quantity}</div>
+                <div class="text-xs text-gray-600">${organic.benefits}</div>
+            `;
+            organicList.appendChild(organicItem);
+        });
+        
+        // Update government schemes
+        const schemesList = document.getElementById('schemesList');
+        schemesList.innerHTML = '';
+        
+        data.government_schemes.forEach(scheme => {
+            const schemeItem = document.createElement('div');
+            schemeItem.className = 'p-4 border border-yellow-200 bg-yellow-50 rounded-lg';
+            schemeItem.innerHTML = `
+                <div class="font-medium text-gray-800 mb-1">${scheme.name}</div>
+                <div class="text-sm text-green-600 mb-2">${scheme.subsidy} {{ t('subsidies', user_language) }}</div>
+                <div class="text-xs text-gray-600 mb-2">${scheme.eligibility}</div>
+                <a href="${scheme.link}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800">{{ t('learn_more', user_language) }} →</a>
+            `;
+            schemesList.appendChild(schemeItem);
+        });
+        
+        // Update totals and tips
+        document.getElementById('totalFertilizer').textContent = data.total_required;
+        document.getElementById('estimatedCost').textContent = data.estimated_cost;
+        document.getElementById('proTip').textContent = data.pro_tip;
+        document.getElementById('planSummary').textContent = data.plan_summary;
+        document.getElementById('weatherStatus').textContent = data.weather_adjustment;
+        document.getElementById('costRange').textContent = data.cost_range;
+    }
+
+    // ========== UI STATE MANAGEMENT ==========
+    function showLoadingState() {
+        document.getElementById('loadingState').classList.remove('hidden');
+        document.getElementById('resultsSection').classList.add('hidden');
+        document.getElementById('errorState').classList.add('hidden');
+        
+        // Disable generate button
+        const btn = document.getElementById('generateBtn');
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${window.fertilizerTranslations.generating}`;
+        btn.disabled = true;
+    }
+
+    function hideLoadingState() {
+        document.getElementById('loadingState').classList.add('hidden');
+        
+        // Re-enable generate button
+        const btn = document.getElementById('generateBtn');
+        btn.innerHTML = `<i class="fas fa-magic mr-2"></i>${window.fertilizerTranslations.generate_new}`;
+        btn.disabled = false;
+    }
+
+    function showResultsSection() {
+        document.getElementById('resultsSection').classList.remove('hidden');
+    }
+
+    function showErrorState(message) {
+        document.getElementById('errorState').classList.remove('hidden');
+        document.getElementById('errorMessage').textContent = message;
+        hideLoadingState();
+    }
+
+    function retryGeneration() {
+        document.getElementById('errorState').classList.add('hidden');
+        generateRecommendation();
+    }
+
+    // ========== ACTION BUTTONS ==========
+    function downloadPlan() {
+        alert(window.fertilizerTranslations.download_pdf + ' ' + window.fertilizerTranslations.redirecting);
+        // In production: Generate PDF from currentRecommendation data
+    }
+
+    function sharePlan() {
+        if (navigator.share) {
+            navigator.share({
+                title: `${window.fertilizerTranslations.fertilizer_page_title} - ${currentUserData?.crop || window.fertilizerTranslations.crop_rice}`,
+                text: window.fertilizerTranslations.share_plan,
+                url: window.location.href
+            });
+        } else {
+            alert(window.fertilizerTranslations.share_plan + ' ' + window.fertilizerTranslations.redirecting);
+            navigator.clipboard.writeText(window.location.href);
+        }
+    }
+
+    function setReminder() {
+        const date = prompt(window.fertilizerTranslations.enter_date, new Date().toISOString().split('T')[0]);
+        if (date) {
+            alert(`${window.fertilizerTranslations.reminder_set} ${date}!`);
+        }
+    }
+
+    function askExpert() {
+        showChatbot();
+    }
+
+    function comparePrices() {
+        alert(window.fertilizerTranslations.redirecting);
+        // In production: Redirect to market price page or open modal
+    }
+
+    // ========== CHATBOT ==========
+    function showChatbot() {
+        document.getElementById('chatbotModal').classList.remove('hidden');
+    }
+
+    function hideChatbot() {
+        document.getElementById('chatbotModal').classList.add('hidden');
+    }
+
+    async function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Add user message
+        addChatMessage('user', message);
+        input.value = '';
+        
+        // Show typing indicator
+        addChatMessage('assistant', '...', true);
+        
+        try {
+            // Call chatbot API
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: message,
+                    session_id: 'fertilizer_chat',
+                    context: {
+                        topic: 'fertilizer',
+                        recommendation: currentRecommendation,
+                        user_data: currentUserData
+                    }
+                }),
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                // Remove typing indicator
                 removeTypingIndicator();
-                addChatMessage('assistant', "I'm having trouble connecting right now. Please try again later or contact support.");
-            }
-        }
-
-        function addChatMessage(role, content, isTyping = false) {
-            const chatMessages = document.getElementById('chatMessages');
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `mb-4 ${role === 'user' ? 'text-right' : 'text-left'}`;
-            
-            if (isTyping) {
-                messageDiv.id = 'typingIndicator';
-                messageDiv.innerHTML = `
-                    <div class="inline-block px-4 py-2 bg-gray-100 rounded-lg">
-                        <div class="flex space-x-1">
-                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
-                        </div>
-                    </div>
-                `;
+                // Add assistant response
+                addChatMessage('assistant', data.reply);
             } else {
-                messageDiv.innerHTML = `
-                    <div class="inline-block max-w-xs md:max-w-md px-4 py-2 rounded-lg ${role === 'user' ? 'bg-leaf text-white' : 'bg-gray-100 text-gray-800'}">
-                        ${content}
-                    </div>
-                `;
+                throw new Error('Chat failed');
             }
             
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+        } catch (error) {
+            removeTypingIndicator();
+            addChatMessage('assistant', window.fertilizerTranslations.chat_error);
         }
+    }
 
-        function removeTypingIndicator() {
-            const typingIndicator = document.getElementById('typingIndicator');
-            if (typingIndicator) {
-                typingIndicator.remove();
-            }
+    function addChatMessage(role, content, isTyping = false) {
+        const chatMessages = document.getElementById('chatMessages');
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `mb-4 ${role === 'user' ? 'text-right' : 'text-left'}`;
+        
+        if (isTyping) {
+            messageDiv.id = 'typingIndicator';
+            messageDiv.innerHTML = `
+                <div class="inline-block px-4 py-2 bg-gray-100 rounded-lg">
+                    <div class="flex space-x-1">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+                    </div>
+                </div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="inline-block max-w-xs md:max-w-md px-4 py-2 rounded-lg ${role === 'user' ? 'bg-leaf text-white' : 'bg-gray-100 text-gray-800'}">
+                    ${content}
+                </div>
+            `;
         }
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 
-        // ========== INITIALIZE ON LOAD ==========
-        // Load a sample recommendation on first visit
-        setTimeout(() => {
-            if (!localStorage.getItem('fertilizer_demo_shown')) {
-                // Auto-fill form with user data
-                if (currentUserData?.crop && currentUserData.crop !== 'Not specified') {
-                    document.getElementById('cropSelect').value = currentUserData.crop;
-                    localStorage.setItem('fertilizer_demo_shown', 'true');
-                    
-                    // Show welcome message
-                    const welcomeMsg = document.createElement('div');
-                    welcomeMsg.className = 'fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg max-w-sm z-50';
-                    welcomeMsg.innerHTML = `
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="font-medium text-gray-800">Welcome to Fertilizer Advisor!</div>
-                            <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div class="text-sm text-gray-600 mb-3">
-                            We've pre-filled the form with your crop data. Click "Generate AI Recommendation" to get started!
-                        </div>
-                        <button onclick="this.parentElement.remove(); scrollToForm()" class="w-full px-4 py-2 bg-leaf text-white rounded-lg hover:bg-green-700">
-                            Get Recommendations
+    function removeTypingIndicator() {
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+
+    // ========== INITIALIZE ON LOAD ==========
+    // Load a sample recommendation on first visit
+    setTimeout(() => {
+        if (!localStorage.getItem('fertilizer_demo_shown')) {
+            // Auto-fill form with user data
+            if (currentUserData?.crop && currentUserData.crop !== '{{ t("not_specified", user_language) }}') {
+                document.getElementById('cropSelect').value = currentUserData.crop;
+                localStorage.setItem('fertilizer_demo_shown', 'true');
+                
+                // Show welcome message
+                const welcomeMsg = document.createElement('div');
+                welcomeMsg.className = 'fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg max-w-sm z-50';
+                welcomeMsg.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="font-medium text-gray-800">${window.fertilizerTranslations.welcome_title}</div>
+                        <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
                         </button>
-                    `;
-                    document.body.appendChild(welcomeMsg);
-                }
+                    </div>
+                    <div class="text-sm text-gray-600 mb-3">
+                        ${window.fertilizerTranslations.welcome_message}
+                    </div>
+                    <button onclick="this.parentElement.remove(); scrollToForm()" class="w-full px-4 py-2 bg-leaf text-white rounded-lg hover:bg-green-700">
+                        ${window.fertilizerTranslations.get_recommendations}
+                    </button>
+                `;
+                document.body.appendChild(welcomeMsg);
             }
-        }, 1000);
-    </script>
-</body>
-</html>
+        }
+    }, 1000);
+</script>
+{% endblock %}
