@@ -1326,6 +1326,199 @@ def fertilizer_recommendation():
             'message': f'Error getting fertilizer data: {str(e)}',
             'fallback_data': generate_fallback_response("fertilizer")
         }), 500
+# ========== WEATHER INSIGHTS - PERSONALIZED LLM ENDPOINT ==========
+@app.route('/api/weather-insights', methods=['POST'])
+@login_required
+def get_weather_insights():
+    """
+    Generate personalized farming advice based on weather data
+    Takes: location, crop, current weather, forecast
+    Returns: critical alerts, quick tips, hourly advice
+    """
+    try:
+        data = request.json
+        location = data.get('location', 'your farm')
+        crop = data.get('crop', 'crops')
+        weather_data = data.get('weather_data', {})
+        
+        current = weather_data.get('current', {})
+        daily = weather_data.get('daily', {})
+        hourly = weather_data.get('hourly', {})
+        
+        # Get user's preferred language
+        user_lang = current_user.preferred_language or 'en'
+        lang_name = {
+            'en': 'English',
+            'hi': 'Hindi',
+            'te': 'Telugu',
+            'ta': 'Tamil'
+        }.get(user_lang, 'English')
+        
+        # Create LLM prompt
+        prompt = f"""
+        You are an agricultural expert advisor for Indian farmers.
+        
+        --- CRITICAL LANGUAGE INSTRUCTION ---
+        You MUST respond in {lang_name} language.
+        The user's preferred language is {user_lang}.
+        
+        If user prefers Hindi: Write ALL text in Hindi (हिन्दी)
+        If user prefers Telugu: Write ALL text in Telugu (తెలుగు)
+        If user prefers Tamil: Write ALL text in Tamil (தமிழ்)
+        If user prefers English: Write in English
+        --------------------------------------
+        
+        Generate personalized farming advice based on this weather data:
+        
+        --- FARMER PROFILE ---
+        • Location: {location}
+        • Primary Crop: {crop}
+        • Current Date: {datetime.now().strftime('%B %d, %Y')}
+        
+        --- CURRENT WEATHER ---
+        • Temperature: {current.get('temperature_2m', 'N/A')}°C
+        • Feels Like: {current.get('apparent_temperature', 'N/A')}°C
+        • Humidity: {current.get('relative_humidity_2m', 'N/A')}%
+        • Wind Speed: {current.get('wind_speed_10m', 'N/A')} km/h
+        • Precipitation: {current.get('precipitation', 0)} mm
+        • Weather Code: {current.get('weather_code', 0)}
+        
+        --- TODAY'S FORECAST ---
+        • Max Temperature: {daily.get('temperature_2m_max', [0])[0] if daily.get('temperature_2m_max') else 'N/A'}°C
+        • Min Temperature: {daily.get('temperature_2m_min', [0])[0] if daily.get('temperature_2m_min') else 'N/A'}°C
+        • Total Rain: {daily.get('precipitation_sum', [0])[0] if daily.get('precipitation_sum') else 0} mm
+        • Evapotranspiration: {daily.get('et0_fao_evapotranspiration', [0])[0] if daily.get('et0_fao_evapotranspiration') else 0} mm
+        
+        --- TOMORROW'S FORECAST ---
+        • Max Temperature: {daily.get('temperature_2m_max', [0])[1] if len(daily.get('temperature_2m_max', [])) > 1 else 'N/A'}°C
+        • Min Temperature: {daily.get('temperature_2m_min', [0])[1] if len(daily.get('temperature_2m_min', [])) > 1 else 'N/A'}°C
+        • Total Rain: {daily.get('precipitation_sum', [0])[1] if len(daily.get('precipitation_sum', [])) > 1 else 0} mm
+        
+        --- INSTRUCTIONS ---
+        Return ONLY this JSON format - no other text:
+        {{
+            "critical_alert": {{
+                "message": "One sentence critical alert if needed, otherwise general advice",
+                "severity": "danger/warning/info/success",
+                "icon": "🌧️/🔥/❄️/💨/🌤️"
+            }},
+            "quick_tips": {{
+                "good_for": "What farming activity is good now",
+                "best_time": "Best time for fieldwork today",
+                "avoid": "What to avoid doing"
+            }},
+            "today_recommendation": "One sentence summary for today",
+            "hourly_advice": [
+                {{"time": "6:00", "advice": "Advice for early morning", "icon": "💧"}},
+                {{"time": "10:00", "advice": "Advice for late morning", "icon": "🌱"}},
+                {{"time": "14:00", "advice": "Advice for afternoon", "icon": "🔥"}},
+                {{"time": "18:00", "advice": "Advice for evening", "icon": "👀"}}
+            ]
+        }}
+        
+        --- CONSTRAINTS ---
+        • Be SPECIFIC to {crop} in {location}
+        • Give ACTIONABLE advice for TODAY
+        • Use simple, clear language
+        • Critical alert ONLY if weather is extreme (heavy rain >20mm, temp >35°C, temp <5°C, wind >30km/h)
+        • Otherwise, set severity to "info" or "success"
+        """
+        
+        # Call LLM
+        llm_response = call_llm_api(prompt)
+        
+        # Ensure we have valid response
+        if not isinstance(llm_response, dict):
+            llm_response = generate_fallback_weather_insights(location, crop, weather_data)
+        
+        return jsonify({
+            'success': True,
+            'insights': llm_response,
+            'generated_at': datetime.utcnow().isoformat()
+        }), 200
+        
+    except Exception as e:
+        print(f"Weather insights error: {e}")
+        return jsonify({
+            'success': False,
+            'message': str(e),
+            'insights': generate_fallback_weather_insights(
+                data.get('location', 'your farm'),
+                data.get('crop', 'crops'),
+                data.get('weather_data', {})
+            )
+        }), 200
+
+
+def generate_fallback_weather_insights(location, crop, weather_data):
+    """Generate fallback weather insights when LLM fails"""
+    current = weather_data.get('current', {})
+    daily = weather_data.get('daily', {})
+    
+    temp = current.get('temperature_2m', 28)
+    rain = current.get('precipitation', 0)
+    wind = current.get('wind_speed_10m', 10)
+    humidity = current.get('relative_humidity_2m', 65)
+    
+    # Determine critical alert
+    critical_alert = {
+        "message": f"Monitor your {crop} regularly in {location}.",
+        "severity": "info",
+        "icon": "🌤️"
+    }
+    
+    if rain > 20:
+        critical_alert = {
+            "message": f"Heavy rain ({rain}mm) expected. Delay field work for {crop}.",
+            "severity": "danger",
+            "icon": "🌧️"
+        }
+    elif temp > 35:
+        critical_alert = {
+            "message": f"Extreme heat ({temp}°C). Irrigate {crop} and avoid midday work.",
+            "severity": "warning",
+            "icon": "🔥"
+        }
+    elif temp < 5:
+        critical_alert = {
+            "message": f"Low temperature ({temp}°C). Protect {crop} from frost.",
+            "severity": "warning",
+            "icon": "❄️"
+        }
+    elif wind > 30:
+        critical_alert = {
+            "message": f"High winds ({wind} km/h). Avoid spraying pesticides.",
+            "severity": "warning",
+            "icon": "💨"
+        }
+    
+    # Determine good for
+    good_for = "Field maintenance"
+    if wind < 15 and rain < 5:
+        good_for = f"Spraying pesticides on {crop}"
+    elif rain > 10:
+        good_for = "Indoor farm tasks"
+    elif temp > 30:
+        good_for = f"Irrigating {crop}"
+    
+    # Get tomorrow's rain
+    tomorrow_rain = daily.get('precipitation_sum', [0, 0])[1] if len(daily.get('precipitation_sum', [])) > 1 else 0
+    
+    return {
+        "critical_alert": critical_alert,
+        "quick_tips": {
+            "good_for": good_for,
+            "best_time": "Morning hours (6-10 AM)",
+            "avoid": "Heavy fieldwork during peak heat (12-4 PM)" if temp > 30 else "Waterlogged field work" if rain > 10 else "No major restrictions"
+        },
+        "today_recommendation": f"{'Irrigate' if temp > 30 else 'Monitor'} your {crop} today. {'Rain expected tomorrow.' if tomorrow_rain > 5 else 'Fair weather ahead.'}",
+        "hourly_advice": [
+            {"time": "6:00", "advice": f"Start irrigation for {crop} if needed", "icon": "💧"},
+            {"time": "10:00", "advice": f"Good time for {crop} maintenance", "icon": "🌱"},
+            {"time": "14:00", "advice": "Avoid fieldwork - peak heat hours" if temp > 32 else f"Check {crop} for pests", "icon": "🔥" if temp > 32 else "🐛"},
+            {"time": "18:00", "advice": f"Evening inspection of {crop}", "icon": "👀"}
+        ]
+    }
 # ========== FARM UPDATES - PERSONALIZED LLM ENDPOINT ==========
 @app.route('/api/farm-updates', methods=['GET'])
 @login_required
